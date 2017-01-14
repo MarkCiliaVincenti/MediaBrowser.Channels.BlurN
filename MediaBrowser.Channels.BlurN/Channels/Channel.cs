@@ -16,10 +16,11 @@ using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using System.Reflection;
+using MediaBrowser.Model.MediaInfo;
 
 namespace MediaBrowser.Channels.BlurN.Channels
 {
-    public class Channel : IChannel
+    public class Channel : IChannel, IHasCacheKey
     {
         public string DataVersion
         {
@@ -138,7 +139,8 @@ namespace MediaBrowser.Channels.BlurN.Channels
             {
                 OMDB omdb = items.List[i];
 
-                Plugin.Logger.Debug("Showing movie '{0}' to BlurN channel list", omdb.Title);
+                if (debug)
+                    Plugin.Logger.Debug("Showing movie '{0}' to BlurN channel list", omdb.Title);
 
                 List<string> directors = (string.IsNullOrEmpty(omdb.Director)) ? new List<string>() : omdb.Director.Replace(", ", ",").Split(',').ToList();
                 List<string> writers = (string.IsNullOrEmpty(omdb.Writer)) ? new List<string>() : omdb.Writer.Replace(", ", ",").Split(',').ToList();
@@ -154,9 +156,9 @@ namespace MediaBrowser.Channels.BlurN.Channels
 
                 List<string> genres = (string.IsNullOrEmpty(omdb.Genre)) ? new List<string>() : omdb.Genre.Replace(", ", ",").Split(',').ToList();
 
-                result.Items.Add(new ChannelItemInfo
+                var cii = new ChannelItemInfo()
                 {
-                    Id = omdb.ImdbId,
+                    Id = "1" + omdb.ImdbId,
                     IndexNumber = i,
                     CommunityRating = (float)omdb.ImdbRating,
                     ContentType = ChannelMediaContentType.Movie,
@@ -172,9 +174,15 @@ namespace MediaBrowser.Channels.BlurN.Channels
                     ProductionYear = omdb.Released.Year,
                     RunTimeTicks = (string.IsNullOrEmpty(omdb.Runtime) || (omdb.Runtime == "N/A")) ? null : (long?)TimeSpan.FromMinutes(Convert.ToInt32(omdb.Runtime.Split(' ')[0])).Ticks,
                     Type = ChannelItemType.Media,
-                });
+                    IsInfiniteStream = false
+                };
 
-                Plugin.Logger.Debug("Added movie '{0}' to BlurN channel list", omdb.Title);
+                cii.SetProviderId(MetadataProviders.Imdb, omdb.ImdbId);
+
+                result.Items.Add(cii);
+
+                if (debug)
+                    Plugin.Logger.Debug("Added movie '{0}' to BlurN channel list", omdb.Title);
             }
 
             return Task.FromResult(result);
@@ -191,6 +199,11 @@ namespace MediaBrowser.Channels.BlurN.Channels
         public bool IsEnabledFor(string userId)
         {
             return true;
+        }
+
+        public string GetCacheKey(string userId)
+        {
+            return DataVersion;
         }
     }
 }

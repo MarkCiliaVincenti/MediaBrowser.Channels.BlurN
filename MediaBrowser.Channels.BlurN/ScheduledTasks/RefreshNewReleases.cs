@@ -192,7 +192,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             if (config.Items.List.Count > 0)
                 insertList.List.AddRange(config.Items.List);
 
-            string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "data.json");
+            string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
 
             if (_fileSystem.FileExists(dataPath))
             {
@@ -212,7 +212,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 Plugin.Logger.Debug("BlurN configuration saved");
 
             if (debug)
-                Plugin.Logger.Debug("BlurN data.json path is " + dataPath);
+                Plugin.Logger.Debug("BlurN MediaBrowser.Channels.BlurN.Data.json path is " + dataPath);
 
             _json.SerializeToFile(insertList.List, dataPath);
 

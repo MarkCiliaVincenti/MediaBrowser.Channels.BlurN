@@ -128,7 +128,7 @@ namespace MediaBrowser.Channels.BlurN
                 items.List = Plugin.Instance.Configuration.Items.List;
             else
             {
-                string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "data.json");
+                string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
 
                 if (_fileSystem.FileExists(dataPath))
                     items.List = _json.DeserializeFromFile<List<OMDB>>(dataPath);

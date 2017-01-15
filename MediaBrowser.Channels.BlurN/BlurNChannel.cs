@@ -73,7 +73,7 @@ namespace MediaBrowser.Channels.BlurN
                 {
                     ChannelMediaType.Video
                 },
-                MaxPageSize = 20,
+                MaxPageSize = 100,
                 //DefaultSortFields = sortfields,
                 SupportsContentDownloading = false,
                 SupportsSortOrderToggle = false
@@ -172,7 +172,7 @@ namespace MediaBrowser.Channels.BlurN
 
                 var cii = new ChannelItemInfo()
                 {
-                    Id = "1" + omdb.ImdbId,
+                    Id = "2" + omdb.ImdbId,
                     IndexNumber = i,
                     CommunityRating = (float)omdb.ImdbRating,
                     ContentType = ChannelMediaContentType.Movie,

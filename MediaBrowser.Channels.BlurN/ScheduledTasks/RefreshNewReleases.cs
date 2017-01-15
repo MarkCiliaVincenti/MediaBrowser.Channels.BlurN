@@ -150,8 +150,9 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             var config = Plugin.Instance.Configuration;
             DateTime lastPublishDate = config.LastPublishDate;
             DateTime minAge = DateTime.Today.AddDays(0 - config.Age);
-            config.LastPublishDate = items[0].PublishDate;
-            Plugin.Instance.SaveConfiguration();
+            DateTime newPublishDate = items[0].PublishDate;
+
+            var insertList = new OMDBList();
 
             var finalItems = items.Where(i => i.PublishDate > lastPublishDate).GroupBy(x => new { x.Title, x.PublishDate }).Select(g => g.First()).Reverse().ToList();
 
@@ -178,7 +179,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 OMDB omdb = ParseOMDB(url, item.PublishDate);
                 if (omdb.Type == "movie" && omdb.ImdbRating >= config.MinimumIMDBRating && omdb.ImdbVotes >= config.MinimumIMDBVotes && omdb.Released > minAge)
                 {
-                    AddVideo(omdb);
+                    insertList.List.Add(omdb);
 
                     await Plugin.NotificationManager.SendNotification(new NotificationRequest()
                     {
@@ -191,6 +192,10 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 }
             }
 
+            insertList.List.AddRange(config.Items.List);
+            config.LastPublishDate = newPublishDate;
+            config.Items.List = insertList.List.OrderByDescending(i => i.BluRayReleaseDate).ThenByDescending(i => i.ImdbRating).ThenByDescending(i => i.ImdbVotes).ThenByDescending(i => i.Metascore).ThenBy(i => i.Title).ToList();
+            Plugin.Instance.SaveConfiguration();
 
             progress.Report(100);
             return;

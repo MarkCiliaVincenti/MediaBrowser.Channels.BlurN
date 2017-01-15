@@ -58,10 +58,10 @@ namespace MediaBrowser.Channels.BlurN
 
         public InternalChannelFeatures GetChannelFeatures()
         {
-            var sortfields = new List<ChannelItemSortField>();
-            sortfields.Add(ChannelItemSortField.DateCreated);
-            sortfields.Add(ChannelItemSortField.CommunityRating);
-            sortfields.Add(ChannelItemSortField.PremiereDate);
+            //var sortfields = new List<ChannelItemSortField>();
+            //sortfields.Add(ChannelItemSortField.DateCreated);
+            //sortfields.Add(ChannelItemSortField.CommunityRating);
+            //sortfields.Add(ChannelItemSortField.PremiereDate);
             return new InternalChannelFeatures
             {
                 ContentTypes = new List<ChannelMediaContentType>
@@ -74,9 +74,9 @@ namespace MediaBrowser.Channels.BlurN
                     ChannelMediaType.Video
                 },
                 MaxPageSize = 20,
-                DefaultSortFields = sortfields,
+                //DefaultSortFields = sortfields,
                 SupportsContentDownloading = false,
-                SupportsSortOrderToggle = true
+                SupportsSortOrderToggle = false
             };
         }
 
@@ -120,16 +120,38 @@ namespace MediaBrowser.Channels.BlurN
                 Plugin.Instance.SaveConfiguration();
             }
 
-            int totalcount = items.List.Count;
+            if (query.SortDescending)
+                items.List.Reverse();
 
-            ChannelItemResult result = new ChannelItemResult() { TotalRecordCount = totalcount };
+
+            OMDBList showList = new OMDBList();
+            if (query.StartIndex.HasValue && query.Limit.HasValue && query.Limit.Value > 0)
+            {
+                int index = query.StartIndex.Value;
+                int limit = query.Limit.Value;
+
+                if (items.List.Count < index + limit)
+                    limit = items.List.Count - index;
+
+                showList.List = items.List.GetRange(index, limit);
+                if (debug)
+                    Plugin.Logger.Debug("Showing range with index {0} and limit {1}", index, limit);
+            }
+            else
+            {
+                showList.List = items.List;
+                if (debug)
+                    Plugin.Logger.Debug("Showing full list");
+            }
+
+            ChannelItemResult result = new ChannelItemResult() { TotalRecordCount = items.List.Count };
 
             if (debug)
-                Plugin.Logger.Debug("Set total record count ({0})", totalcount);
+                Plugin.Logger.Debug("Set total record count ({0})", (int)result.TotalRecordCount);
 
-            for (int i = totalcount - 1; i >= 0; i--)
+            for (int i = 0; i < showList.List.Count; i++)
             {
-                OMDB omdb = items.List[i];
+                OMDB omdb = showList.List[i];
 
                 if (debug)
                     Plugin.Logger.Debug("Showing movie '{0}' to BlurN channel list", omdb.Title);

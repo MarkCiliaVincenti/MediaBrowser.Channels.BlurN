@@ -11,11 +11,27 @@ using MediaBrowser.Model.Drawing;
 using MediaBrowser.Channels.BlurN.Helpers;
 using MediaBrowser.Controller.Entities;
 using System.Reflection;
+using MediaBrowser.Model.Serialization;
+using MediaBrowser.Common.Configuration;
+using MediaBrowser.Model.IO;
+using System.IO;
 
 namespace MediaBrowser.Channels.BlurN
 {
     public class BlurNChannel : IChannel, IHasCacheKey
     {
+        private readonly IJsonSerializer _json;
+        private readonly IApplicationPaths _appPaths;
+        private readonly IFileSystem _fileSystem;
+
+        public BlurNChannel(IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem)
+        {
+            _json = json;
+            _appPaths = appPaths;
+            _fileSystem = fileSystem;
+        }
+
+
         public string DataVersion
         {
             get
@@ -107,7 +123,16 @@ namespace MediaBrowser.Channels.BlurN
             if (debug)
                 Plugin.Logger.Debug("Entered BlurN channel list");
 
-            var items = Plugin.Instance.Configuration.Items;
+            OMDBList items = new OMDBList();
+            if (Plugin.Instance.Configuration.Items.List.Count > 0)
+                items.List = Plugin.Instance.Configuration.Items.List;
+            else
+            {
+                string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "data.json");
+
+                if (_fileSystem.FileExists(dataPath))
+                    items.List = _json.DeserializeFromFile<List<OMDB>>(dataPath);
+            }
 
             if (debug)
                 Plugin.Logger.Debug("Retrieved items");

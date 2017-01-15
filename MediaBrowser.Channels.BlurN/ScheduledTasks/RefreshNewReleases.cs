@@ -10,12 +10,27 @@ using System.Xml.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
-using MediaBrowser.Controller.Channels;
+using MediaBrowser.Model.Serialization;
+using MediaBrowser.Common.Configuration;
+using System.IO;
+using MediaBrowser.Model.IO;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 {
     class RefreshNewReleases : IScheduledTask
     {
+        private readonly IJsonSerializer _json;
+        private readonly IApplicationPaths _appPaths;
+        private readonly IFileSystem _fileSystem;
+
+        public RefreshNewReleases(IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem)
+        {
+            _json = json;
+            _appPaths = appPaths;
+            _fileSystem = fileSystem;
+        }
+
+
         public string Category
         {
             get
@@ -53,7 +68,6 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             try
             {
                 XDocument doc = XDocument.Load(url);
-                // RSS/Channel/item
                 var entry = doc.Root.Element("movie");
 
                 return new OMDB()
@@ -115,15 +129,6 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 }
             }
 
-            //await Plugin.NotificationManager.SendNotification(new NotificationRequest()
-            //{
-            //    Name = "Received response",
-            //    Description = result,
-            //    Date = DateTime.Now,
-            //    Level = NotificationLevel.Normal,
-            //    SendToUserMode = SendToUserType.All
-            //}, cancellationToken).ConfigureAwait(false);
-
             XDocument doc = XDocument.Parse(result);
 
             var entries = from item in doc.Root.Descendants().First(i => i.Name.LocalName == "channel").Elements().Where(i => i.Name.LocalName == "item")
@@ -138,16 +143,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             IList<Item> items = entries.ToList();
 
-            //await Plugin.NotificationManager.SendNotification(new NotificationRequest()
-            //{
-            //    Name = "Refreshed new releases",
-            //    Description = items.Count + " new releases found",
-            //    Date = DateTime.Now,
-            //    Level = NotificationLevel.Normal,
-            //    SendToUserMode = SendToUserType.All
-            //}, cancellationToken).ConfigureAwait(false);
-
             var config = Plugin.Instance.Configuration;
+            bool debug = config.EnableDebugLogging;
             DateTime lastPublishDate = config.LastPublishDate;
             DateTime minAge = DateTime.Today.AddDays(0 - config.Age);
             DateTime newPublishDate = items[0].PublishDate;
@@ -192,10 +189,35 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 }
             }
 
-            insertList.List.AddRange(config.Items.List);
+            if (config.Items.List.Count > 0)
+                insertList.List.AddRange(config.Items.List);
+
+            string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "data.json");
+
+            if (_fileSystem.FileExists(dataPath))
+            {
+                var existingData = _json.DeserializeFromFile<List<OMDB>>(dataPath);
+
+                if (existingData != null)
+                    insertList.List.AddRange(existingData);
+            }
+
+            insertList.List = insertList.List.OrderByDescending(i => i.BluRayReleaseDate).ThenByDescending(i => i.ImdbRating).ThenByDescending(i => i.ImdbVotes).ThenByDescending(i => i.Metascore).ThenBy(i => i.Title).ToList();
+
             config.LastPublishDate = newPublishDate;
-            config.Items.List = insertList.List.OrderByDescending(i => i.BluRayReleaseDate).ThenByDescending(i => i.ImdbRating).ThenByDescending(i => i.ImdbVotes).ThenByDescending(i => i.Metascore).ThenBy(i => i.Title).ToList();
+            config.Items = new OMDBList();
             Plugin.Instance.SaveConfiguration();
+
+            if (debug)
+                Plugin.Logger.Debug("BlurN configuration saved");
+
+            if (debug)
+                Plugin.Logger.Debug("BlurN data.json path is " + dataPath);
+
+            _json.SerializeToFile(insertList.List, dataPath);
+
+            if (debug)
+                Plugin.Logger.Debug("BlurN data json file saved");
 
             progress.Report(100);
             return;

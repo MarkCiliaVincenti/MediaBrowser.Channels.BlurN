@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
@@ -10,17 +9,12 @@ using System.Threading;
 using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Drawing;
 using MediaBrowser.Channels.BlurN.Helpers;
-using MediaBrowser.Model.Notifications;
 using MediaBrowser.Controller.Entities;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.Serialization;
 using System.Reflection;
-using MediaBrowser.Model.MediaInfo;
 
-namespace MediaBrowser.Channels.BlurN.Channels
+namespace MediaBrowser.Channels.BlurN
 {
-    public class Channel : IChannel, IHasCacheKey
+    public class BlurNChannel : IChannel, IHasCacheKey
     {
         public string DataVersion
         {
@@ -42,7 +36,7 @@ namespace MediaBrowser.Channels.BlurN.Channels
         {
             get
             {
-                return "";
+                return "https://github.com/MarkCiliaVincenti/MediaBrowser.Channels.BlurN";
             }
         }
 
@@ -58,7 +52,7 @@ namespace MediaBrowser.Channels.BlurN.Channels
         {
             get
             {
-                return ChannelParentalRating.Adult;
+                return ChannelParentalRating.UsR;
             }
         }
 
@@ -86,23 +80,21 @@ namespace MediaBrowser.Channels.BlurN.Channels
             };
         }
 
-        private Task<DynamicImageResponse> GetImage(ImageType type, string imageFormat)
-        {
-            var path = String.Format("{0}.Images.{1}.{2}", GetType().Namespace, type, imageFormat);
-            return Task.FromResult(new DynamicImageResponse
-            {
-                Format = ImageFormat.Jpg,
-                HasImage = true,
-                Stream = GetType().GetTypeInfo().Assembly.GetManifestResourceStream(path)
-            });
-        }
-
         public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
         {
             switch (type)
             {
                 case ImageType.Thumb:
-                    return GetImage(type, "jpg");
+                    {
+                        var path = GetType().Namespace + ".Images." + type.ToString().ToLower() + ".jpg";
+
+                        return Task.FromResult(new DynamicImageResponse
+                        {
+                            Format = ImageFormat.Jpg,
+                            HasImage = true,
+                            Stream = GetType().GetTypeInfo().Assembly.GetManifestResourceStream(path)
+                        });
+                    }
                 default:
                     throw new ArgumentException("Unsupported image type: " + type);
             }

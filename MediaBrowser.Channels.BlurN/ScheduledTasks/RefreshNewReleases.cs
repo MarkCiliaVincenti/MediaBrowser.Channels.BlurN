@@ -200,7 +200,12 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     omdb = ParseOMDB(url, item.PublishDate);
                 }
 
-                if (!string.IsNullOrEmpty(omdb.ImdbId) && (config.AddItemsAlreadyInLibrary || !libDict.ContainsKey(omdb.ImdbId)) && omdb.Type == "movie" && omdb.ImdbRating >= config.MinimumIMDBRating && omdb.ImdbVotes >= config.MinimumIMDBVotes && omdb.Released > minAge)
+                if (!string.IsNullOrEmpty(omdb.ImdbId) && !config.AddItemsAlreadyInLibrary && libDict.ContainsKey(omdb.ImdbId))
+                {
+                    if (debug)
+                        Plugin.Logger.Debug(omdb.ImdbId + " is already in the library, skipped.");
+                }
+                else if (omdb.Type == "movie" && omdb.ImdbRating >= config.MinimumIMDBRating && omdb.ImdbVotes >= config.MinimumIMDBVotes && omdb.Released > minAge)
                 {
                     insertList.List.Add(omdb);
 

@@ -31,6 +31,10 @@
                         </div>
                     </div>
                     <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkAddItemsAlreadyInLibrary" />
+                        <span>Add movies which are already in your library</span>
+                    </label>
+                    <label class="checkboxContainer">
                         <input is="emby-checkbox" type="checkbox" id="chkNotifications" />
                         <span>Enable notifications on new matching releases</span>
                     </label>
@@ -58,6 +62,7 @@
                     $('#txtAge', page).val(config.Age || "");
                     $('#txtMinimumIMDBRating', page).val(config.MinimumIMDBRating || "");
                     $('#txtMinimumIMDBVotes', page).val(config.MinimumIMDBVotes || "");
+                    $('#chkAddItemsAlreadyInLibrary', page).checked(config.AddItemsAlreadyInLibrary || false).checkboxradio("refresh");
                     $('#chkNotifications', page).checked(config.EnableNewReleaseNotification || false).checkboxradio("refresh");
                     $('#chkDebugLogging', page).checked(config.EnableDebugLogging || false).checkboxradio("refresh");
                     Dashboard.hideLoadingMsg();
@@ -70,6 +75,7 @@
                     config.Age = $('#txtAge', form).val();
                     config.MinimumIMDBRating = $('#txtMinimumIMDBRating', form).val();
                     config.MinimumIMDBVotes = $('#txtMinimumIMDBVotes', form).val();
+                    config.AddItemsAlreadyInLibrary = $('#chkAddItemsAlreadyInLibrary', form).checked();
                     config.EnableDebugLogging = $('#chkDebugLogging', form).checked();
                     config.EnableNewReleaseNotification = $('#chkNotifications', form).checked();
                     ApiClient.updatePluginConfiguration(BlurNConfigurationPage.pluginUniqueId, config).then(Dashboard.processPluginConfigurationUpdateResult);

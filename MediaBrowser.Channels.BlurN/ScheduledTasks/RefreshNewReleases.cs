@@ -14,6 +14,9 @@ using MediaBrowser.Model.Serialization;
 using MediaBrowser.Common.Configuration;
 using System.IO;
 using MediaBrowser.Model.IO;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Entities;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 {
@@ -22,12 +25,14 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         private readonly IJsonSerializer _json;
         private readonly IApplicationPaths _appPaths;
         private readonly IFileSystem _fileSystem;
+        private readonly ILibraryManager _libraryManager;
 
-        public RefreshNewReleases(IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem)
+        public RefreshNewReleases(IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager)
         {
             _json = json;
             _appPaths = appPaths;
             _fileSystem = fileSystem;
+            _libraryManager = libraryManager;
         }
 
 
@@ -149,6 +154,21 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             DateTime minAge = DateTime.Today.AddDays(0 - config.Age);
             DateTime newPublishDate = items[0].PublishDate;
 
+            IEnumerable<BaseItem> library;
+            Dictionary<string, BaseItem> libDict = new Dictionary<string, BaseItem>();
+
+            if (!config.AddItemsAlreadyInLibrary)
+            {
+                library = _libraryManager.GetItemList(new InternalItemsQuery() { HasImdbId = true, SourceTypes = new SourceType[] { SourceType.Library } });
+                
+                foreach (BaseItem libItem in library)
+                {
+                    string libIMDbId = libItem.GetProviderId(MetadataProviders.Imdb);
+                    if (!libDict.ContainsKey(libIMDbId))
+                        libDict.Add(libIMDbId, libItem);
+                }
+            }
+
             var insertList = new OMDBList();
 
             var finalItems = items.Where(i => i.PublishDate > lastPublishDate).GroupBy(x => new { x.Title, x.PublishDate }).Select(g => g.First()).Reverse().ToList();
@@ -180,7 +200,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     omdb = ParseOMDB(url, item.PublishDate);
                 }
 
-                if (omdb.Type == "movie" && omdb.ImdbRating >= config.MinimumIMDBRating && omdb.ImdbVotes >= config.MinimumIMDBVotes && omdb.Released > minAge)
+                if (!string.IsNullOrEmpty(omdb.ImdbId) && (config.AddItemsAlreadyInLibrary || !libDict.ContainsKey(omdb.ImdbId)) && omdb.Type == "movie" && omdb.ImdbRating >= config.MinimumIMDBRating && omdb.ImdbVotes >= config.MinimumIMDBVotes && omdb.Released > minAge)
                 {
                     insertList.List.Add(omdb);
 

@@ -8,6 +8,7 @@ using MediaBrowser.Model.Entities;
 using System.Threading;
 using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Drawing;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Channels.BlurN.Helpers;
 using MediaBrowser.Controller.Entities;
 using System.Reflection;

@@ -81,14 +81,6 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             return;
         }
 
-
-
-        public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
-        {
-            // Until we can vary these default triggers per server and MBT, we need something that makes sense for both
-            return new[] {             
-                new TaskTriggerInfo {Type = TaskTriggerInfo.TriggerInterval, IntervalTicks = TimeSpan.FromDays(365).Ticks }
-            };
-        }
+        public IEnumerable<TaskTriggerInfo> GetDefaultTriggers() => new List<TaskTriggerInfo>();
     }
 }

@@ -155,7 +155,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             for (int i = 0; i < finalItems.Count(); i++)
             {
-                progress.Report(100 - (100 / (1 + i)));
+                progress.Report(100d * (Convert.ToDouble(i + 1) / Convert.ToDouble(finalItems.Count())));
                 Item item = finalItems[i];
                 int year = 0;
                 Regex rgx = new Regex(@"\| (\d{4}) \|", RegexOptions.IgnoreCase);
@@ -174,6 +174,12 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     url = "http://www.omdbapi.com/?t=" + WebUtility.UrlEncode(item.Title) + "&plot=short&r=xml";
 
                 OMDB omdb = ParseOMDB(url, item.PublishDate);
+                if (string.IsNullOrEmpty(omdb.ImdbId) && item.Title.EndsWith(" 3D") && year > 0)
+                {
+                    url = "http://www.omdbapi.com/?t=" + WebUtility.UrlEncode(item.Title.Remove(item.Title.Length - 3)) + "&y=" + year.ToString() + "&plot=short&r=xml";
+                    omdb = ParseOMDB(url, item.PublishDate);
+                }
+
                 if (omdb.Type == "movie" && omdb.ImdbRating >= config.MinimumIMDBRating && omdb.ImdbVotes >= config.MinimumIMDBVotes && omdb.Released > minAge)
                 {
                     insertList.List.Add(omdb);

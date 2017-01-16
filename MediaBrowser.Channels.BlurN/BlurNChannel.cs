@@ -102,11 +102,11 @@ namespace MediaBrowser.Channels.BlurN
             {
                 case ImageType.Thumb:
                     {
-                        var path = GetType().Namespace + ".Images." + type.ToString().ToLower() + ".jpg";
+                        var path = GetType().Namespace + ".Images." + type.ToString().ToLower() + ".png";
 
                         return Task.FromResult(new DynamicImageResponse
                         {
-                            Format = ImageFormat.Jpg,
+                            Format = ImageFormat.Png,
                             HasImage = true,
                             Stream = GetType().GetTypeInfo().Assembly.GetManifestResourceStream(path)
                         });

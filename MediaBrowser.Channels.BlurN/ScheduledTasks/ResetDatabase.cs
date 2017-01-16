@@ -11,11 +11,26 @@ using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using MediaBrowser.Controller.Channels;
+using MediaBrowser.Model.Serialization;
+using MediaBrowser.Common.Configuration;
+using MediaBrowser.Model.IO;
+using System.IO;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 {
     class ResetDatabase : IScheduledTask
     {
+        private readonly IJsonSerializer _json;
+        private readonly IApplicationPaths _appPaths;
+        private readonly IFileSystem _fileSystem;
+
+        public ResetDatabase(IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem)
+        {
+            _json = json;
+            _appPaths = appPaths;
+            _fileSystem = fileSystem;
+        }
+
         public string Category
         {
             get
@@ -56,6 +71,12 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             config.LastPublishDate = DateTime.MinValue;
             config.Items = new OMDBList();
             Plugin.Instance.SaveConfiguration();
+
+            string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
+
+            if (_fileSystem.FileExists(dataPath))
+                _json.SerializeToFile(config.Items.List, dataPath);            
+
             progress.Report(100);
             return;
         }

@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Resources;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
@@ -14,3 +15,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
 [assembly: Guid("08D13692-D214-47DF-B9BD-2868870C5961")]
+[assembly: AssemblyVersion("1.1.0.0")]
+[assembly: NeutralResourcesLanguage("en")]
+

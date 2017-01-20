@@ -43,7 +43,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         {
             get
             {
-                return "Resets the BlurN database, retaining the settings.";
+                return "Clears the BlurN channel database whilst retaining the settings.";
             }
         }
 

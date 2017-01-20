@@ -15,33 +15,41 @@
                     <div class="inputContainer">
                         <input is="emby-input" type="text" id="txtAge" label="Maximum age in days:" />
                         <div class="fieldDescription">
-                            Number of days elapsed since it was released to cinema.
+                            Number of days elapsed since it was released to cinema. (Default is 365)
                         </div>
                     </div>
                     <div class="inputContainer">
-                        <input is="emby-input" type="text" id="txtMinimumIMDBRating" label="Minimum IMDB rating:" />
+                        <input is="emby-input" type="text" id="txtMinimumIMDBRating" label="Minimum IMDb rating:" />
                         <div class="fieldDescription">
-                            Decimal value from 0 to 10.
+                            Decimal value from 0 to 10. (Default is 7.0)
                         </div>
                     </div>
                     <div class="inputContainer">
-                        <input is="emby-input" type="text" id="txtMinimumIMDBVotes" label="Minimum number of IMDB votes:" />
+                        <input is="emby-input" type="text" id="txtMinimumIMDBVotes" label="Minimum number of IMDb votes:" />
                         <div class="fieldDescription">
-                            The more famous the movie the more votes it will tend to get.
+                            The more famous the movie the more votes it will tend to get. (Default is 1000)
                         </div>
                     </div>
                     <label class="checkboxContainer">
                         <input is="emby-checkbox" type="checkbox" id="chkAddItemsAlreadyInLibrary" />
-                        <span>Add movies to BlurN even if they already exist in your Emby movie library</span>
+                        <span>Add movies to BlurN even if they already exist in your Emby movie library (Default is checked)</span>
                     </label>
                     <label class="checkboxContainer">
                         <input is="emby-checkbox" type="checkbox" id="chkNotifications" />
-                        <span>Enable notifications on new matching releases</span>
+                        <span>Enable notifications on new matching releases (Default is checked)</span>
                     </label>
                     <label class="checkboxContainer">
                         <input is="emby-checkbox" type="checkbox" id="chkDebugLogging" />
-                        <span>Enable BlurN debug logging</span>
+                        <span>Enable BlurN debug logging (Default is unchecked)</span>
                     </label>
+
+                    <p>Like my plugin? Buy me a drink!</p>
+                    <p><form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+    <input type="hidden" name="cmd" value="_s-xclick">
+    <input type="hidden" name="hosted_button_id" value="RHMS9UKYKSMM8">
+    <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+    <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+</form></p>
 
                     <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
 

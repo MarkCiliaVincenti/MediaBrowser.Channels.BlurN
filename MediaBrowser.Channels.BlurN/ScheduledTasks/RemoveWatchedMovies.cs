@@ -122,6 +122,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                                 Plugin.Logger.Debug("Saving updated BlurN database");
 
                             _json.SerializeToFile(existingData, dataPath);
+                            config.ChannelRefreshCount++;
+                            Plugin.Instance.SaveConfiguration();
                         }
                     }
                 }

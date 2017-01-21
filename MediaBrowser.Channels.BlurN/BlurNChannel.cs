@@ -198,7 +198,7 @@ namespace MediaBrowser.Channels.BlurN
 
                 var cii = new ChannelItemInfo()
                 {
-                    Id = "2" + omdb.ImdbId,
+                    Id = Plugin.Instance.PluginConfiguration.ChannelRefreshCount.ToString() + "-" + omdb.ImdbId,
                     IndexNumber = i,
                     CommunityRating = (float)omdb.ImdbRating,
                     ContentType = ChannelMediaContentType.Movie,

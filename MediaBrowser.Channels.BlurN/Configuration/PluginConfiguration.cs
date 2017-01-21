@@ -15,10 +15,12 @@ namespace MediaBrowser.Channels.BlurN.Configuration
         public Boolean AddItemsAlreadyInLibrary { get; set; }
         public Boolean EnableNewReleaseNotification { get; set; }
         public Boolean EnableDebugLogging { get; set; }
+        public int ChannelRefreshCount { get; set; }
         public OMDBList Items { get; set; }
 
         public PluginConfiguration()
         {
+            ChannelRefreshCount = 0;
             MinimumIMDBRating = 7.0m;
             MinimumIMDBVotes = 1000;
             Age = 365;

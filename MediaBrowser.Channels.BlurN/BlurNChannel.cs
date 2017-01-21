@@ -85,6 +85,7 @@ namespace MediaBrowser.Channels.BlurN
                 {
                     ChannelMediaContentType.Movie
                 },
+                AutoRefreshLevels = 3,
 
                 MediaTypes = new List<ChannelMediaType>
                 {

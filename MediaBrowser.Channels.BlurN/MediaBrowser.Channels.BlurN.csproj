@@ -44,6 +44,7 @@
     <Compile Include="Helpers\OMDB.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ScheduledTasks\RemoveWatchedMovies.cs" />
     <Compile Include="ScheduledTasks\RefreshNewReleases.cs" />
     <Compile Include="ScheduledTasks\ResetDatabase.cs" />
   </ItemGroup>

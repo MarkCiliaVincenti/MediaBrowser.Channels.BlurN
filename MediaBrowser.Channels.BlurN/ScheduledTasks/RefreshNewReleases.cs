@@ -160,7 +160,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             if (!config.AddItemsAlreadyInLibrary)
             {
                 library = _libraryManager.GetItemList(new InternalItemsQuery() { HasImdbId = true, SourceTypes = new SourceType[] { SourceType.Library } });
-                
+
                 foreach (BaseItem libItem in library)
                 {
                     string libIMDbId = libItem.GetProviderId(MetadataProviders.Imdb);
@@ -209,14 +209,15 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 {
                     insertList.List.Add(omdb);
 
-                    await Plugin.NotificationManager.SendNotification(new NotificationRequest()
-                    {
-                        Name = "New movie released: " + omdb.Title,
-                        Description = "Year: " + omdb.Year + ", IMDB Rating: " + omdb.ImdbRating,
-                        Date = DateTime.Now,
-                        Level = NotificationLevel.Normal,
-                        SendToUserMode = SendToUserType.All
-                    }, cancellationToken).ConfigureAwait(false);
+                    if (config.EnableNewReleaseNotification)
+                        await Plugin.NotificationManager.SendNotification(new NotificationRequest()
+                        {
+                            Name = "New movie released: " + omdb.Title,
+                            Description = "Year: " + omdb.Year + ", IMDB Rating: " + omdb.ImdbRating,
+                            Date = DateTime.Now,
+                            Level = NotificationLevel.Normal,
+                            SendToUserMode = SendToUserType.All
+                        }, cancellationToken).ConfigureAwait(false);
                 }
             }
 

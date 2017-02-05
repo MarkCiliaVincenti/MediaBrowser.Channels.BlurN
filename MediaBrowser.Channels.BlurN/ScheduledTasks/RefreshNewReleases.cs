@@ -16,6 +16,7 @@ using System.IO;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Notifications;
 using MediaBrowser.Model.Entities;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
@@ -134,6 +135,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 }
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             XDocument doc = XDocument.Parse(result);
 
             var entries = from item in doc.Root.Descendants().First(i => i.Name.LocalName == "channel").Elements().Where(i => i.Name.LocalName == "item")
@@ -161,13 +164,18 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             {
                 library = _libraryManager.GetItemList(new InternalItemsQuery() { HasImdbId = true, SourceTypes = new SourceType[] { SourceType.Library } });
 
+                cancellationToken.ThrowIfCancellationRequested();
+
                 foreach (BaseItem libItem in library)
                 {
                     string libIMDbId = libItem.GetProviderId(MetadataProviders.Imdb);
                     if (!libDict.ContainsKey(libIMDbId))
                         libDict.Add(libIMDbId, libItem);
                 }
+
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             var insertList = new OMDBList();
 
@@ -175,6 +183,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             for (int i = 0; i < finalItems.Count(); i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 progress.Report(100d * (Convert.ToDouble(i + 1) / Convert.ToDouble(finalItems.Count())));
                 Item item = finalItems[i];
                 int year = 0;
@@ -210,14 +219,20 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     insertList.List.Add(omdb);
 
                     if (config.EnableNewReleaseNotification)
+                    {
+                        var variables = new Dictionary<string, string>();
+                        variables.Add("Title", omdb.Title);
+                        variables.Add("Year", omdb.Year.ToString());
+                        variables.Add("IMDbRating", omdb.ImdbRating.ToString());
                         await Plugin.NotificationManager.SendNotification(new NotificationRequest()
                         {
-                            Name = "New movie released: " + omdb.Title,
-                            Description = "Year: " + omdb.Year + ", IMDB Rating: " + omdb.ImdbRating,
+                            Variables = variables,
                             Date = DateTime.Now,
                             Level = NotificationLevel.Normal,
-                            SendToUserMode = SendToUserType.All
+                            SendToUserMode = SendToUserType.All,
+                            NotificationType = "BlurNNewRelease"
                         }, cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
 

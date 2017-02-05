@@ -41,6 +41,7 @@
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="Helpers\FeedParser.cs" />
     <Compile Include="Helpers\Item.cs" />
+    <Compile Include="Helpers\BlurNNotificationType.cs" />
     <Compile Include="Helpers\OMDB.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -1,14 +1,14 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>NextPVR</title>
+    <title>BlurN</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage nextpvrConfigurationPage" data-require="emby-button,emby-input,emby-checkbox">
+    <div data-role="page" class="page type-interior pluginConfigurationPage BlurNConfigurationPage" data-require="emby-button,emby-input,emby-checkbox">
 
         <div data-role="content">
             <div class="content-primary">
-                <form class="nextpvrConfigurationForm">
+                <form class="BlurNConfigurationForm">
                     <div class="inputContainer">
                         <input is="emby-input" type="text" id="txtLastPublishDate" label="Last publish date:" disabled="disabled" />
                     </div>
@@ -46,7 +46,16 @@
                     <p>Like my plugin? Buy me a drink!</p>
                     <p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RHMS9UKYKSMM8" target="_blank"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" /></a></p>
 
-                    <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
+                    <div>
+                        <button is="emby-button" type="button" class="raised button-cancel block" id="resetDatabase">
+                            <span>Reset BlurN database</span>
+                        </button>
+                    </div>
+                    <br />
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
+                    </div>
+
 
                 </form>
             </div>
@@ -54,14 +63,28 @@
 
 
         <script type="text/javascript">
+            function showLastPublishedDate(page, date)
+            {
+                var d = new Date(date);
+                function pad(n) { return n < 10 ? '0' + n : n }
+                $('#txtLastPublishDate', page).val(d.getUTCFullYear() + '-'
+                + pad(d.getUTCMonth() + 1) + '-'
+                + pad(d.getUTCDate()));
+            }
             var BlurNConfigurationPage = {
                 pluginUniqueId: "08D13692-D214-47DF-B9BD-2868870C5961"
             };
-            $('.nextpvrConfigurationPage').on('pageshow', function (event) {
+            $('.BlurNConfigurationPage').on('pageinit', function (event) {
+                var page = this;
+                $('#resetDatabase', page).on('click', function (event) {
+                    resetDatabase(page, this.getAttribute('data-id'));
+                });
+            });
+            $('.BlurNConfigurationPage').on('pageshow', function (event) {
                 Dashboard.showLoadingMsg();
                 var page = this;
                 ApiClient.getPluginConfiguration(BlurNConfigurationPage.pluginUniqueId).then(function (config) {
-                    $('#txtLastPublishDate', page).val(config.LastPublishDate || "");
+                    showLastPublishedDate(page, config.LastPublishDate);
                     $('#txtAge', page).val(config.Age || "");
                     $('#txtMinimumIMDBRating', page).val(config.MinimumIMDBRating || "");
                     $('#txtMinimumIMDBVotes', page).val(config.MinimumIMDBVotes || "");
@@ -71,7 +94,7 @@
                     Dashboard.hideLoadingMsg();
                 });
             });
-            $('.nextpvrConfigurationForm').on('submit', function (e) {
+            $('.BlurNConfigurationForm').on('submit', function (e) {
                 Dashboard.showLoadingMsg();
                 var form = this;
                 ApiClient.getPluginConfiguration(BlurNConfigurationPage.pluginUniqueId).then(function (config) {
@@ -86,6 +109,22 @@
                 // Disable default form submission
                 return false;
             });
+            function resetDatabase(page, id) {
+                Dashboard.confirm('Are you sure you want to reset the BlurN database?', 'Confirm Database Reset', function (result) {
+                    if (result) {
+                        Dashboard.showLoadingMsg();
+                        ApiClient.getPluginConfiguration(BlurNConfigurationPage.pluginUniqueId).then(function (config) {
+                            config.LastPublishDate = new Date('2017-01-01T00:00:00.0000000Z');
+                            
+                            ApiClient.updatePluginConfiguration(BlurNConfigurationPage.pluginUniqueId, config).then(function () {
+                                showLastPublishedDate(page, config.LastPublishDate);
+                                Dashboard.processPluginConfigurationUpdateResult;
+                            });
+                        });
+                        Dashboard.hideLoadingMsg();
+                    }
+                });
+            }
         </script>
     </div>
 </body>

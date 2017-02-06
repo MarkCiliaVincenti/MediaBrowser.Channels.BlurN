@@ -122,8 +122,14 @@ namespace MediaBrowser.Channels.BlurN
             }
         }
 
-        public Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
+        public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
+            if (Plugin.Instance.Configuration.LastPublishDate.Equals(new DateTime(2017, 1, 1, 0, 0, 0, DateTimeKind.Utc)))
+            {
+                BlurNTasks tasks = new BlurNTasks(_json, _appPaths, _fileSystem);
+                await tasks.ResetDatabase().ConfigureAwait(false);
+            }
+
             bool debug = Plugin.Instance.Configuration.EnableDebugLogging;
 
             if (debug)
@@ -252,7 +258,7 @@ namespace MediaBrowser.Channels.BlurN
             if (debug)
                 Plugin.Logger.Debug("Set total record count ({0})", (int)result.TotalRecordCount);
 
-            return Task.FromResult(result);
+            return result;
         }
 
         public IEnumerable<ImageType> GetSupportedChannelImages()

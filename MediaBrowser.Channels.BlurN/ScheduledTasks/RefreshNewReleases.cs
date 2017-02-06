@@ -100,8 +100,10 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     Released = ParseDate(entry.Attribute("released").Value)
                 };
             }
-            catch
+            catch (Exception ex)
             {
+                if (Plugin.Instance.Configuration.EnableDebugLogging)
+                    Plugin.Logger.Debug("BlurN received an error from " + url + " — " + ex.Message);
                 return new OMDB();
             }
         }
@@ -152,7 +154,19 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             IList<Item> items = entries.ToList();
 
             var config = Plugin.Instance.Configuration;
+
+            if (config.LastPublishDate.Equals(new DateTime(2017, 1, 1, 0, 0, 0, DateTimeKind.Utc)))
+            {
+                BlurNTasks tasks = new BlurNTasks(_json, _appPaths, _fileSystem);
+                await tasks.ResetDatabase().ConfigureAwait(false);
+                config = Plugin.Instance.Configuration;
+            }
+
             bool debug = config.EnableDebugLogging;
+
+            if (debug)
+                Plugin.Logger.Debug("BlurN found " + items.Count + " items in feed");
+            
             DateTime lastPublishDate = config.LastPublishDate;
             DateTime minAge = DateTime.Today.AddDays(0 - config.Age);
             DateTime newPublishDate = items[0].PublishDate;
@@ -180,6 +194,9 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             var insertList = new OMDBList();
 
             var finalItems = items.Where(i => i.PublishDate > lastPublishDate).GroupBy(x => new { x.Title, x.PublishDate }).Select(g => g.First()).Reverse().ToList();
+
+            if (debug)
+                Plugin.Logger.Debug("BlurN checking " + finalItems.Count + " new items");
 
             for (int i = 0; i < finalItems.Count(); i++)
             {
@@ -233,6 +250,9 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                             NotificationType = "BlurNNewRelease"
                         }, cancellationToken).ConfigureAwait(false);
                     }
+
+                    if (debug)
+                        Plugin.Logger.Debug("Adding "+ omdb.Title + " to the BlurN channel.");
                 }
             }
 

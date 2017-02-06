@@ -16,68 +16,35 @@ using MediaBrowser.Common.Configuration;
 using MediaBrowser.Model.IO;
 using System.IO;
 
-namespace MediaBrowser.Channels.BlurN.ScheduledTasks
+namespace MediaBrowser.Channels.BlurN.Helpers
 {
-    class ResetDatabase : IScheduledTask
+    class BlurNTasks
     {
         private readonly IJsonSerializer _json;
         private readonly IApplicationPaths _appPaths;
         private readonly IFileSystem _fileSystem;
 
-        public ResetDatabase(IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem)
+        public BlurNTasks(IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem)
         {
             _json = json;
             _appPaths = appPaths;
             _fileSystem = fileSystem;
         }
 
-        public string Category
+        public async Task ResetDatabase()
         {
-            get
-            {
-                return "BlurN";
-            }
-        }
-
-        public string Description
-        {
-            get
-            {
-                return "Clears the BlurN channel database whilst retaining the settings.";
-            }
-        }
-
-        public string Key
-        {
-            get
-            {
-                return "BlurNResetDatabase";
-            }
-        }
-
-        public string Name
-        {
-            get
-            {
-                return "Reset BlurN database";
-            }
-        }
-
-
-        public async Task Execute(CancellationToken cancellationToken, IProgress<double> progress)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
             var config = Plugin.Instance.Configuration;
-            config.LastPublishDate = DateTime.MinValue;
             config.Items = new OMDBList();
             Plugin.Instance.SaveConfiguration();
 
             string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
 
             if (_fileSystem.FileExists(dataPath))
-                _json.SerializeToFile(config.Items.List, dataPath);            
+                _json.SerializeToFile(config.Items.List, dataPath);
 
-            progress.Report(100);
+            if (config.EnableDebugLogging)
+                Plugin.Logger.Debug("BlurN database reset actualized.");
+
             return;
         }
 

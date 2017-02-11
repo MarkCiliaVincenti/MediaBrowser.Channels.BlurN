@@ -247,6 +247,8 @@ namespace MediaBrowser.Channels.BlurN
                     };
 
                     cii.SetProviderId(MetadataProviders.Imdb, omdb.ImdbId);
+                    if (omdb.TmdbId.HasValue)
+                        cii.SetProviderId(MetadataProviders.Tmdb, omdb.TmdbId.Value.ToString());
 
                     result.Items.Add(cii);
 

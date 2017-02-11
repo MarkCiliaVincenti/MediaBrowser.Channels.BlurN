@@ -73,6 +73,9 @@ namespace MediaBrowser.Channels.BlurN.Helpers
         [XmlElement("Type")]
         public string Type { get; set; }
 
+        [XmlElement("TmdbId")]
+        public int? TmdbId { get; set; }
+
         public OMDB()
         {
         }

@@ -16,7 +16,6 @@ using System.IO;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Notifications;
 using MediaBrowser.Model.Entities;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
@@ -69,44 +68,55 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             }
         }
 
-        public virtual OMDB ParseOMDB(string url, DateTime bluRayReleaseDate)
+        public async virtual Task<OMDB> ParseOMDB(string url, DateTime bluRayReleaseDate)
         {
             try
             {
-                XDocument doc = XDocument.Load(url);
-                var entry = doc.Root.Element("movie");
-
-                return new OMDB()
+                string result = await GetPage(url).ConfigureAwait(false);
+                XDocument doc = XDocument.Parse(result);
+                XElement root = doc.Root;
+                if (root.Elements().First().Name.ToString() == "movie")
                 {
-                    BluRayReleaseDate = bluRayReleaseDate,
-                    Actors = entry.Attribute("actors").Value,
-                    Awards = entry.Attribute("awards").Value,
-                    Country = entry.Attribute("country").Value,
-                    Director = entry.Attribute("director").Value,
-                    Genre = entry.Attribute("genre").Value,
-                    ImdbId = entry.Attribute("imdbID").Value,
-                    Language = entry.Attribute("language").Value,
-                    Metascore = entry.Attribute("metascore").Value,
-                    Plot = entry.Attribute("plot").Value,
-                    Poster = entry.Attribute("poster").Value,
-                    Rated = entry.Attribute("rated").Value,
-                    Runtime = entry.Attribute("runtime").Value,
-                    Type = entry.Attribute("type").Value,
-                    Writer = entry.Attribute("writer").Value,
-                    Title = entry.Attribute("title").Value,
-                    Year = Convert.ToInt32(entry.Attribute("year").Value),
-                    ImdbRating = Convert.ToDecimal(entry.Attribute("imdbRating").Value),
-                    ImdbVotes = Convert.ToInt32(entry.Attribute("imdbVotes").Value.Replace(",", "")),
-                    Released = ParseDate(entry.Attribute("released").Value)
-                };
+                    var entry = doc.Root.Element("movie");
+
+                    return new OMDB()
+                    {
+                        BluRayReleaseDate = bluRayReleaseDate,
+                        Actors = entry.Attribute("actors").Value,
+                        Awards = entry.Attribute("awards").Value,
+                        Country = entry.Attribute("country").Value,
+                        Director = entry.Attribute("director").Value,
+                        Genre = entry.Attribute("genre").Value,
+                        ImdbId = entry.Attribute("imdbID").Value,
+                        Language = entry.Attribute("language").Value,
+                        Metascore = entry.Attribute("metascore").Value,
+                        Plot = entry.Attribute("plot").Value,
+                        Poster = entry.Attribute("poster").Value,
+                        Rated = entry.Attribute("rated").Value,
+                        Runtime = entry.Attribute("runtime").Value,
+                        Type = entry.Attribute("type").Value,
+                        Writer = entry.Attribute("writer").Value,
+                        Title = entry.Attribute("title").Value,
+                        Year = Convert.ToInt32(entry.Attribute("year").Value),
+                        ImdbRating = Convert.ToDecimal(entry.Attribute("imdbRating").Value),
+                        ImdbVotes = Convert.ToInt32(entry.Attribute("imdbVotes").Value.Replace(",", "")),
+                        Released = ParseDate(entry.Attribute("released").Value)
+                    };
+                }
+                else if (Plugin.Instance.Configuration.EnableDebugLogging)
+                {
+                    Plugin.Logger.Debug("BlurN received an error from " + url + " - " + root.Elements().First().Value);
+                }
+                return new OMDB();
             }
             catch (Exception ex)
             {
                 if (Plugin.Instance.Configuration.EnableDebugLogging)
-                    Plugin.Logger.Debug("BlurN received an error from " + url + " — " + ex.Message);
+                    Plugin.Logger.Debug("BlurN received an error from " + url + " - " + ex.Message);
                 return new OMDB();
             }
         }
+
 
         private DateTime ParseDate(string date)
         {
@@ -122,20 +132,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             cancellationToken.ThrowIfCancellationRequested();
 
             string feedURL = "http://www.blu-ray.com/rss/newreleasesfeed.xml";
-
-            string result;
-            using (HttpClient client = new HttpClient())
-            using (HttpRequestMessage request = new HttpRequestMessage())
-            {
-                request.Headers.Add("User-Agent", "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; WOW64; Trident/6.0)");
-                request.RequestUri = new Uri(feedURL);
-                using (HttpResponseMessage response = await client.SendAsync(request))
-                using (HttpContent content = response.Content)
-                {
-                    // ... Read the string.
-                    result = await content.ReadAsStringAsync().ConfigureAwait(false);
-                }
-            }
+            string result = await GetPage(feedURL).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -166,7 +163,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             if (debug)
                 Plugin.Logger.Debug("BlurN found " + items.Count + " items in feed");
-            
+
             DateTime lastPublishDate = config.LastPublishDate;
             DateTime minAge = DateTime.Today.AddDays(0 - config.Age);
             DateTime newPublishDate = items[0].PublishDate;
@@ -219,11 +216,11 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 else
                     url = "http://www.omdbapi.com/?t=" + WebUtility.UrlEncode(item.Title) + "&plot=short&r=xml";
 
-                OMDB omdb = ParseOMDB(url, item.PublishDate);
+                OMDB omdb = await ParseOMDB(url, item.PublishDate).ConfigureAwait(false);
                 if (string.IsNullOrEmpty(omdb.ImdbId) && item.Title.EndsWith(" 3D") && year > 0)
                 {
                     url = "http://www.omdbapi.com/?t=" + WebUtility.UrlEncode(item.Title.Remove(item.Title.Length - 3)) + "&y=" + year.ToString() + "&plot=short&r=xml";
-                    omdb = ParseOMDB(url, item.PublishDate);
+                    omdb = await ParseOMDB(url, item.PublishDate).ConfigureAwait(false);
                 }
 
                 if (!string.IsNullOrEmpty(omdb.ImdbId) && !config.AddItemsAlreadyInLibrary && libDict.ContainsKey(omdb.ImdbId))
@@ -233,6 +230,17 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 }
                 else if (omdb.Type == "movie" && omdb.ImdbRating >= config.MinimumIMDBRating && omdb.ImdbVotes >= config.MinimumIMDBVotes && omdb.Released > minAge)
                 {
+                    try
+                    {
+                        string tmdbContent = await GetPage("https://api.themoviedb.org/3/find/" + omdb.ImdbId + "?api_key=3e97b8d1c00a0f2fe72054febe695276&external_source=imdb_id").ConfigureAwait(false);
+                        var tmdb = _json.DeserializeFromString<TmdbMovieFindResult>(tmdbContent);
+                        TmdbMovieSearchResult tmdbMovie = tmdb.movie_results.First();
+                        omdb.Poster = "https://image.tmdb.org/t/p/w640" + tmdbMovie.poster_path;
+                        omdb.TmdbId = tmdbMovie.id;
+                    }
+                    catch
+                    { }
+
                     insertList.List.Add(omdb);
 
                     if (config.EnableNewReleaseNotification)
@@ -252,7 +260,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     }
 
                     if (debug)
-                        Plugin.Logger.Debug("Adding "+ omdb.Title + " to the BlurN channel.");
+                        Plugin.Logger.Debug("Adding " + omdb.Title + " to the BlurN channel.");
                 }
             }
 
@@ -266,7 +274,22 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 var existingData = _json.DeserializeFromFile<List<OMDB>>(dataPath);
 
                 if (existingData != null)
+                {
+                    foreach (OMDB omdb in existingData.Where(o => !o.TmdbId.HasValue))
+                    {
+                        try
+                        {
+                            string tmdbContent = await GetPage("https://api.themoviedb.org/3/find/" + omdb.ImdbId + "?api_key=3e97b8d1c00a0f2fe72054febe695276&external_source=imdb_id").ConfigureAwait(false);
+                            var tmdb = _json.DeserializeFromString<TmdbMovieFindResult>(tmdbContent);
+                            TmdbMovieSearchResult tmdbMovie = tmdb.movie_results.First();
+                            omdb.Poster = "https://image.tmdb.org/t/p/w640" + tmdbMovie.poster_path;
+                            omdb.TmdbId = tmdbMovie.id;
+                        }
+                        catch
+                        { }
+                    }
                     insertList.List.AddRange(existingData);
+                }
             }
 
             insertList.List = insertList.List.OrderByDescending(i => i.BluRayReleaseDate).ThenByDescending(i => i.ImdbRating).ThenByDescending(i => i.ImdbVotes).ThenByDescending(i => i.Metascore).ThenBy(i => i.Title).ToList();
@@ -288,6 +311,31 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             progress.Report(100);
             return;
+        }
+
+        public static async Task<string> GetPage(string feedURL)
+        {
+            string result;
+            using (HttpClient client = new HttpClient())
+            using (HttpRequestMessage request = new HttpRequestMessage())
+            {
+                request.Headers.Add("User-Agent", "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; WOW64; Trident/6.0)");
+                request.RequestUri = new Uri(feedURL);
+                using (HttpResponseMessage response = await client.SendAsync(request))
+                {
+                    using (HttpContent content = response.Content)
+                    {
+                        // ... Read the string.
+                        result = await content.ReadAsStringAsync().ConfigureAwait(false);
+                    }
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new HttpRequestException((int)response.StatusCode + " " + response.StatusCode.ToString() + ": " + result);
+                    }
+                }
+            }
+
+            return result;
         }
 
         private void AddVideo(OMDB omdb)

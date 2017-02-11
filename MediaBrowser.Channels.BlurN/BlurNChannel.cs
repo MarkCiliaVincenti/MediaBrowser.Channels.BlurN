@@ -133,7 +133,7 @@ namespace MediaBrowser.Channels.BlurN
             bool debug = Plugin.Instance.Configuration.EnableDebugLogging;
 
             if (debug)
-                Plugin.Logger.Debug("Entered BlurN channel list");
+                Plugin.Logger.Debug("[BlurN] Entered BlurN channel list");
 
             User user = _userManager.GetUserById(query.UserId);
 
@@ -159,12 +159,12 @@ namespace MediaBrowser.Channels.BlurN
             }
 
             if (debug)
-                Plugin.Logger.Debug("Retrieved items");
+                Plugin.Logger.Debug("[BlurN] Retrieved items");
 
             if (items == null)
             {
                 if (debug)
-                    Plugin.Logger.Debug("Items is null, set to new list");
+                    Plugin.Logger.Debug("[BlurN] Items is null, set to new list");
                 items = new OMDBList();
                 Plugin.Instance.SaveConfiguration();
             }
@@ -184,13 +184,13 @@ namespace MediaBrowser.Channels.BlurN
 
                 showList.List = items.List.GetRange(index, limit);
                 if (debug)
-                    Plugin.Logger.Debug("Showing range with index {0} and limit {1}", index, limit);
+                    Plugin.Logger.Debug("[BlurN] Showing range with index {0} and limit {1}", index, limit);
             }
             else
             {
                 showList.List = items.List;
                 if (debug)
-                    Plugin.Logger.Debug("Showing full list");
+                    Plugin.Logger.Debug("[BlurN] Showing full list");
             }
 
             ChannelItemResult result = new ChannelItemResult() { TotalRecordCount = items.List.Count };
@@ -204,12 +204,12 @@ namespace MediaBrowser.Channels.BlurN
                     result.TotalRecordCount--;
 
                     if (debug)
-                        Plugin.Logger.Debug("Hiding movie '{0}' from BlurN channel list as watched by user", omdb.Title);
+                        Plugin.Logger.Debug("[BlurN] Hiding movie '{0}' from BlurN channel list as watched by user", omdb.Title);
                 }
                 else
                 {
                     if (debug)
-                        Plugin.Logger.Debug("Showing movie '{0}' to BlurN channel list", omdb.Title);
+                        Plugin.Logger.Debug("[BlurN] Showing movie '{0}' to BlurN channel list", omdb.Title);
 
                     List<string> directors = (string.IsNullOrEmpty(omdb.Director)) ? new List<string>() : omdb.Director.Replace(", ", ",").Split(',').ToList();
                     List<string> writers = (string.IsNullOrEmpty(omdb.Writer)) ? new List<string>() : omdb.Writer.Replace(", ", ",").Split(',').ToList();
@@ -253,12 +253,12 @@ namespace MediaBrowser.Channels.BlurN
                     result.Items.Add(cii);
 
                     if (debug)
-                        Plugin.Logger.Debug("Added movie '{0}' to BlurN channel list", omdb.Title);
+                        Plugin.Logger.Debug("[BlurN] Added movie '{0}' to BlurN channel list", omdb.Title);
                 }
             }
 
             if (debug)
-                Plugin.Logger.Debug("Set total record count ({0})", (int)result.TotalRecordCount);
+                Plugin.Logger.Debug("[BlurN] Set total record count ({0})", (int)result.TotalRecordCount);
 
             return result;
         }

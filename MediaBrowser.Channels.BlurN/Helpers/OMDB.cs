@@ -7,6 +7,20 @@ using System.Xml.Serialization;
 
 namespace MediaBrowser.Channels.BlurN.Helpers
 {
+    [XmlType("FailedOMDB")]
+    public class FailedOMDB
+    {
+        [XmlElement("Title")]
+        public string Title { get; set; }
+
+        [XmlElement("Year")]
+        public int Year { get; set; }
+
+        public FailedOMDB()
+        {
+        }
+    }
+
     /// <summary>
     /// Represents an OMDB entry.
     /// </summary>
@@ -89,4 +103,14 @@ namespace MediaBrowser.Channels.BlurN.Helpers
         [XmlArrayItem("BlurNOMDBObject")]
         public List<OMDB> List = new List<OMDB>();
     }
+
+    [XmlRoot("BlurNFailedOMDBList")]
+    [XmlInclude(typeof(FailedOMDB))]
+    public class FailedOMDBList
+    {
+        [XmlArray("BlurNFailedOMDBArray")]
+        [XmlArrayItem("BlurNFailedOMDBObject")]
+        public List<FailedOMDB> List = new List<FailedOMDB>();
+    }
+
 }

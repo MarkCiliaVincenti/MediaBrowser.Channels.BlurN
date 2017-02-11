@@ -105,15 +105,15 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 }
                 else if (Plugin.Instance.Configuration.EnableDebugLogging)
                 {
-                    Plugin.Logger.Debug("BlurN received an error from " + url + " - " + root.Elements().First().Value);
+                    Plugin.Logger.Debug("[BlurN] Received an error from " + url + " - " + root.Elements().First().Value);
                 }
                 return new OMDB();
             }
             catch (Exception ex)
             {
                 if (Plugin.Instance.Configuration.EnableDebugLogging)
-                    Plugin.Logger.Debug("BlurN received an error from " + url + " - " + ex.Message);
-                return new OMDB();
+                    Plugin.Logger.Debug("[BlurN] Received an error from " + url + " - " + ex.Message);
+                return null;
             }
         }
 
@@ -162,7 +162,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             bool debug = config.EnableDebugLogging;
 
             if (debug)
-                Plugin.Logger.Debug("BlurN found " + items.Count + " items in feed");
+                Plugin.Logger.Debug("[BlurN] Found " + items.Count + " items in feed");
 
             DateTime lastPublishDate = config.LastPublishDate;
             DateTime minAge = DateTime.Today.AddDays(0 - config.Age);
@@ -189,11 +189,27 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             cancellationToken.ThrowIfCancellationRequested();
 
             var insertList = new OMDBList();
+            var failedList = new FailedOMDBList();
 
             var finalItems = items.Where(i => i.PublishDate > lastPublishDate).GroupBy(x => new { x.Title, x.PublishDate }).Select(g => g.First()).Reverse().ToList();
 
+            string failedDataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Failed.json");
+
+            if (_fileSystem.FileExists(failedDataPath))
+            {
+                var existingFailedList = _json.DeserializeFromFile<List<FailedOMDB>>(failedDataPath);
+
+                if (existingFailedList != null)
+                {
+                    foreach (FailedOMDB failedItem in existingFailedList)
+                    {
+                        finalItems.Add(new Item() { Link = "Failed", Content = failedItem.Year.ToString(), Title = failedItem.Title });
+                    }
+                }
+            }
+
             if (debug)
-                Plugin.Logger.Debug("BlurN checking " + finalItems.Count + " new items");
+                Plugin.Logger.Debug("[BlurN] Checking " + finalItems.Count + " new items");
 
             for (int i = 0; i < finalItems.Count(); i++)
             {
@@ -201,13 +217,20 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 progress.Report(100d * (Convert.ToDouble(i + 1) / Convert.ToDouble(finalItems.Count())));
                 Item item = finalItems[i];
                 int year = 0;
-                Regex rgx = new Regex(@"\| (\d{4}) \|", RegexOptions.IgnoreCase);
-                MatchCollection matches = rgx.Matches(item.Content);
-                if (matches.Count > 0)
+                if (item.Link == "Failed")
                 {
-                    Match match = matches[matches.Count - 1];
-                    Group group = match.Groups[match.Groups.Count - 1];
-                    year = Convert.ToInt32(group.Value);
+                    year = Convert.ToInt32(item.Content);
+                }
+                else
+                {
+                    Regex rgx = new Regex(@"\| (\d{4}) \|", RegexOptions.IgnoreCase);
+                    MatchCollection matches = rgx.Matches(item.Content);
+                    if (matches.Count > 0)
+                    {
+                        Match match = matches[matches.Count - 1];
+                        Group group = match.Groups[match.Groups.Count - 1];
+                        year = Convert.ToInt32(group.Value);
+                    }
                 }
 
                 string url;
@@ -217,16 +240,19 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     url = "http://www.omdbapi.com/?t=" + WebUtility.UrlEncode(item.Title) + "&plot=short&r=xml";
 
                 OMDB omdb = await ParseOMDB(url, item.PublishDate).ConfigureAwait(false);
-                if (string.IsNullOrEmpty(omdb.ImdbId) && item.Title.EndsWith(" 3D") && year > 0)
+                if (omdb != null && string.IsNullOrEmpty(omdb.ImdbId) && item.Title.EndsWith(" 3D") && year > 0)
                 {
                     url = "http://www.omdbapi.com/?t=" + WebUtility.UrlEncode(item.Title.Remove(item.Title.Length - 3)) + "&y=" + year.ToString() + "&plot=short&r=xml";
                     omdb = await ParseOMDB(url, item.PublishDate).ConfigureAwait(false);
                 }
-
-                if (!string.IsNullOrEmpty(omdb.ImdbId) && !config.AddItemsAlreadyInLibrary && libDict.ContainsKey(omdb.ImdbId))
+                if (omdb == null)
+                {
+                    failedList.List.Add(new FailedOMDB() { Title = item.Title, Year = year });
+                }
+                else if (!string.IsNullOrEmpty(omdb.ImdbId) && !config.AddItemsAlreadyInLibrary && libDict.ContainsKey(omdb.ImdbId))
                 {
                     if (debug)
-                        Plugin.Logger.Debug(omdb.ImdbId + " is already in the library, skipped.");
+                        Plugin.Logger.Debug("[BlurN] "+ omdb.ImdbId + " is already in the library, skipped.");
                 }
                 else if (omdb.Type == "movie" && omdb.ImdbRating >= config.MinimumIMDBRating && omdb.ImdbVotes >= config.MinimumIMDBVotes && omdb.Released > minAge)
                 {
@@ -260,7 +286,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     }
 
                     if (debug)
-                        Plugin.Logger.Debug("Adding " + omdb.Title + " to the BlurN channel.");
+                        Plugin.Logger.Debug("[BlurN] Adding " + omdb.Title + " to the BlurN channel.");
                 }
             }
 
@@ -299,15 +325,13 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             Plugin.Instance.SaveConfiguration();
 
             if (debug)
-                Plugin.Logger.Debug("BlurN configuration saved");
-
-            if (debug)
-                Plugin.Logger.Debug("BlurN MediaBrowser.Channels.BlurN.Data.json path is " + dataPath);
+                Plugin.Logger.Debug("[BlurN] Configuration saved. MediaBrowser.Channels.BlurN.Data.json path is " + dataPath);
 
             _json.SerializeToFile(insertList.List, dataPath);
+            _json.SerializeToFile(failedList.List, failedDataPath);
 
             if (debug)
-                Plugin.Logger.Debug("BlurN data json file saved");
+                Plugin.Logger.Debug("[BlurN] json files saved");
 
             progress.Report(100);
             return;

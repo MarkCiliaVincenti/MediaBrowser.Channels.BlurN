@@ -43,7 +43,7 @@ namespace MediaBrowser.Channels.BlurN.Helpers
                 _json.SerializeToFile(config.Items.List, dataPath);
 
             if (config.EnableDebugLogging)
-                Plugin.Logger.Debug("BlurN database reset actualized.");
+                Plugin.Logger.Debug("[BlurN] Database reset actualized.");
 
             return;
         }

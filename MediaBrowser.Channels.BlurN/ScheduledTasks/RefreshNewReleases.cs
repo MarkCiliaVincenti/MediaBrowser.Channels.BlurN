@@ -8,7 +8,6 @@ using MediaBrowser.Channels.BlurN.Helpers;
 using MediaBrowser.Model.Notifications;
 using System.Xml.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Common.Configuration;
@@ -16,7 +15,12 @@ using System.IO;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
+using System.Net.Http;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Model.Providers;
+using MediaBrowser.Controller.Entities.Movies;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 {
@@ -26,6 +30,9 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         private readonly IApplicationPaths _appPaths;
         private readonly IFileSystem _fileSystem;
         private readonly ILibraryManager _libraryManager;
+
+        private const string bluRayReleaseUri = "http://www.blu-ray.com/rss/newreleasesfeed.xml";
+        private const string baseOmdbApiUri = "http://www.omdbapi.com";
 
         public RefreshNewReleases(IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager)
         {
@@ -68,11 +75,19 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             }
         }
 
+        public int Order
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public async virtual Task<OMDB> ParseOMDB(string url, DateTime bluRayReleaseDate)
         {
             try
             {
-                string result = await GetPage(url).ConfigureAwait(false);
+                string result = await HTTP.GetPage(url).ConfigureAwait(false);
                 XDocument doc = XDocument.Parse(result);
                 XElement root = doc.Root;
                 if (root.Elements().First().Name.ToString() == "movie")
@@ -111,8 +126,6 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             }
             catch (Exception ex)
             {
-                if (Plugin.Instance.Configuration.EnableDebugLogging)
-                    Plugin.Logger.Debug("[BlurN] Received an error from " + url + " - " + ex.Message);
                 return null;
             }
         }
@@ -127,37 +140,14 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 return DateTime.MinValue;
         }
 
+
         public async Task Execute(CancellationToken cancellationToken, IProgress<double> progress)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            string feedURL = "http://www.blu-ray.com/rss/newreleasesfeed.xml";
-            string result = await GetPage(feedURL).ConfigureAwait(false);
+            var items = (await GetBluRayReleaseItems(cancellationToken).ConfigureAwait(false)).List;
 
-            cancellationToken.ThrowIfCancellationRequested();
-
-            XDocument doc = XDocument.Parse(result);
-
-            var entries = from item in doc.Root.Descendants().First(i => i.Name.LocalName == "channel").Elements().Where(i => i.Name.LocalName == "item")
-                          select new Item
-                          {
-                              FeedType = FeedType.RSS,
-                              Content = item.Elements().First(i => i.Name.LocalName == "description").Value,
-                              Link = item.Elements().First(i => i.Name.LocalName == "link").Value,
-                              PublishDate = ParseDate(item.Elements().First(i => i.Name.LocalName == "pubDate").Value),
-                              Title = item.Elements().First(i => i.Name.LocalName == "title").Value.Replace(" 4K (Blu-ray)", "").Replace(" (Blu-ray)", "")
-                          };
-
-            IList<Item> items = entries.ToList();
-
-            var config = Plugin.Instance.Configuration;
-
-            if (config.LastPublishDate.Equals(new DateTime(2017, 1, 1, 0, 0, 0, DateTimeKind.Utc)))
-            {
-                BlurNTasks tasks = new BlurNTasks(_json, _appPaths, _fileSystem);
-                await tasks.ResetDatabase().ConfigureAwait(false);
-                config = Plugin.Instance.Configuration;
-            }
+            var config = await BlurNTasks.CheckIfResetDatabaseRequested(cancellationToken, _json, _appPaths, _fileSystem).ConfigureAwait(false);
 
             bool debug = config.EnableDebugLogging;
 
@@ -167,24 +157,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             DateTime lastPublishDate = config.LastPublishDate;
             DateTime minAge = DateTime.Today.AddDays(0 - config.Age);
             DateTime newPublishDate = items[0].PublishDate;
-
-            IEnumerable<BaseItem> library;
-            Dictionary<string, BaseItem> libDict = new Dictionary<string, BaseItem>();
-
-            if (!config.AddItemsAlreadyInLibrary)
-            {
-                library = _libraryManager.GetItemList(new InternalItemsQuery() { HasImdbId = true, SourceTypes = new SourceType[] { SourceType.Library } });
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                foreach (BaseItem libItem in library)
-                {
-                    string libIMDbId = libItem.GetProviderId(MetadataProviders.Imdb);
-                    if (!libDict.ContainsKey(libIMDbId))
-                        libDict.Add(libIMDbId, libItem);
-                }
-
-            }
+            Dictionary<string, BaseItem> libDict = (config.AddItemsAlreadyInLibrary) ? Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery() { HasImdbId = true, SourceTypes = new SourceType[] { SourceType.Library } }) : new Dictionary<string, BaseItem>();
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -193,20 +166,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             var finalItems = items.Where(i => i.PublishDate > lastPublishDate).GroupBy(x => new { x.Title, x.PublishDate }).Select(g => g.First()).Reverse().ToList();
 
-            string failedDataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Failed.json");
-
-            if (_fileSystem.FileExists(failedDataPath))
-            {
-                var existingFailedList = _json.DeserializeFromFile<List<FailedOMDB>>(failedDataPath);
-
-                if (existingFailedList != null)
-                {
-                    foreach (FailedOMDB failedItem in existingFailedList)
-                    {
-                        finalItems.Add(new Item() { Link = "Failed", Content = failedItem.Year.ToString(), Title = failedItem.Title });
-                    }
-                }
-            }
+            string failedDataPath = AddPreviouslyFailedItemsToFinalItems(finalItems);
 
             if (debug)
                 Plugin.Logger.Debug("[BlurN] Checking " + finalItems.Count + " new items");
@@ -215,13 +175,13 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 progress.Report(100d * (Convert.ToDouble(i + 1) / Convert.ToDouble(finalItems.Count())));
+
                 Item item = finalItems[i];
                 int year = 0;
-                if (item.Link == "Failed")
-                {
+
+                if (item.Link == "Failed")  // previously failed item
                     year = Convert.ToInt32(item.Content);
-                }
-                else
+                else // new item
                 {
                     Regex rgx = new Regex(@"\| (\d{4}) \|", RegexOptions.IgnoreCase);
                     MatchCollection matches = rgx.Matches(item.Content);
@@ -235,37 +195,27 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
                 string url;
                 if (year > 0)
-                    url = "http://www.omdbapi.com/?t=" + WebUtility.UrlEncode(item.Title) + "&y=" + year.ToString() + "&plot=short&r=xml";
+                    url = baseOmdbApiUri + "/?t=" + WebUtility.UrlEncode(item.Title) + "&y=" + year.ToString() + "&plot=short&r=xml";
                 else
-                    url = "http://www.omdbapi.com/?t=" + WebUtility.UrlEncode(item.Title) + "&plot=short&r=xml";
+                    url = baseOmdbApiUri + "/?t=" + WebUtility.UrlEncode(item.Title) + "&plot=short&r=xml";
 
                 OMDB omdb = await ParseOMDB(url, item.PublishDate).ConfigureAwait(false);
-                if (omdb != null && string.IsNullOrEmpty(omdb.ImdbId) && item.Title.EndsWith(" 3D") && year > 0)
+                if (omdb != null && string.IsNullOrEmpty(omdb.ImdbId) && (item.Title.EndsWith(" 3D") || item.Title.EndsWith(" 4K")) && year > 0)
                 {
-                    url = "http://www.omdbapi.com/?t=" + WebUtility.UrlEncode(item.Title.Remove(item.Title.Length - 3)) + "&y=" + year.ToString() + "&plot=short&r=xml";
+                    url = baseOmdbApiUri + "/?t=" + WebUtility.UrlEncode(item.Title.Remove(item.Title.Length - 3)) + "&y=" + year.ToString() + "&plot=short&r=xml";
                     omdb = await ParseOMDB(url, item.PublishDate).ConfigureAwait(false);
                 }
                 if (omdb == null)
-                {
                     failedList.List.Add(new FailedOMDB() { Title = item.Title, Year = year });
-                }
+
                 else if (!string.IsNullOrEmpty(omdb.ImdbId) && !config.AddItemsAlreadyInLibrary && libDict.ContainsKey(omdb.ImdbId))
                 {
                     if (debug)
-                        Plugin.Logger.Debug("[BlurN] "+ omdb.ImdbId + " is already in the library, skipped.");
+                        Plugin.Logger.Debug("[BlurN] " + omdb.ImdbId + " is already in the library, skipped.");
                 }
                 else if (omdb.Type == "movie" && omdb.ImdbRating >= config.MinimumIMDBRating && omdb.ImdbVotes >= config.MinimumIMDBVotes && omdb.Released > minAge)
                 {
-                    try
-                    {
-                        string tmdbContent = await GetPage("https://api.themoviedb.org/3/find/" + omdb.ImdbId + "?api_key=3e97b8d1c00a0f2fe72054febe695276&external_source=imdb_id").ConfigureAwait(false);
-                        var tmdb = _json.DeserializeFromString<TmdbMovieFindResult>(tmdbContent);
-                        TmdbMovieSearchResult tmdbMovie = tmdb.movie_results.First();
-                        omdb.Poster = "https://image.tmdb.org/t/p/w640" + tmdbMovie.poster_path;
-                        omdb.TmdbId = tmdbMovie.id;
-                    }
-                    catch
-                    { }
+                    await UpdateContentWithTmdbData(cancellationToken, omdb).ConfigureAwait(false);
 
                     insertList.List.Add(omdb);
 
@@ -302,18 +252,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 if (existingData != null)
                 {
                     foreach (OMDB omdb in existingData.Where(o => !o.TmdbId.HasValue))
-                    {
-                        try
-                        {
-                            string tmdbContent = await GetPage("https://api.themoviedb.org/3/find/" + omdb.ImdbId + "?api_key=3e97b8d1c00a0f2fe72054febe695276&external_source=imdb_id").ConfigureAwait(false);
-                            var tmdb = _json.DeserializeFromString<TmdbMovieFindResult>(tmdbContent);
-                            TmdbMovieSearchResult tmdbMovie = tmdb.movie_results.First();
-                            omdb.Poster = "https://image.tmdb.org/t/p/w640" + tmdbMovie.poster_path;
-                            omdb.TmdbId = tmdbMovie.id;
-                        }
-                        catch
-                        { }
-                    }
+                        await UpdateContentWithTmdbData(cancellationToken, omdb).ConfigureAwait(false);
+
                     insertList.List.AddRange(existingData);
                 }
             }
@@ -337,29 +277,62 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             return;
         }
 
-        public static async Task<string> GetPage(string feedURL)
+        private async Task UpdateContentWithTmdbData(CancellationToken cancellationToken, OMDB omdb)
         {
-            string result;
-            using (HttpClient client = new HttpClient())
-            using (HttpRequestMessage request = new HttpRequestMessage())
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
             {
-                request.Headers.Add("User-Agent", "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; WOW64; Trident/6.0)");
-                request.RequestUri = new Uri(feedURL);
-                using (HttpResponseMessage response = await client.SendAsync(request))
+                string tmdbContent = await HTTP.GetPage("https://api.themoviedb.org/3/find/" + omdb.ImdbId + "?api_key=3e97b8d1c00a0f2fe72054febe695276&external_source=imdb_id").ConfigureAwait(false);
+                var tmdb = _json.DeserializeFromString<TmdbMovieFindResult>(tmdbContent);
+                TmdbMovieSearchResult tmdbMovie = tmdb.movie_results.First();
+                omdb.Poster = "https://image.tmdb.org/t/p/original" + tmdbMovie.poster_path;
+                omdb.TmdbId = tmdbMovie.id;
+            }
+            catch
+            { }
+        }
+
+        private string AddPreviouslyFailedItemsToFinalItems(List<Item> finalItems)
+        {
+            string failedDataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Failed.json");
+
+            if (_fileSystem.FileExists(failedDataPath))
+            {
+                var existingFailedList = _json.DeserializeFromFile<List<FailedOMDB>>(failedDataPath);
+
+                if (existingFailedList != null)
                 {
-                    using (HttpContent content = response.Content)
+                    foreach (FailedOMDB failedItem in existingFailedList)
                     {
-                        // ... Read the string.
-                        result = await content.ReadAsStringAsync().ConfigureAwait(false);
-                    }
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        throw new HttpRequestException((int)response.StatusCode + " " + response.StatusCode.ToString() + ": " + result);
+                        finalItems.Add(new Item() { Link = "Failed", Content = failedItem.Year.ToString(), Title = failedItem.Title });
                     }
                 }
             }
 
-            return result;
+            return failedDataPath;
+        }
+
+        private async Task<ItemList> GetBluRayReleaseItems(CancellationToken cancellationToken)
+        {
+            string bluRayReleaseContent = await HTTP.GetPage(bluRayReleaseUri).ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            XDocument doc = XDocument.Parse(bluRayReleaseContent);
+
+            var entries = from item in doc.Root.Descendants().First(i => i.Name.LocalName == "channel").Elements().Where(i => i.Name.LocalName == "item")
+                          select new Item
+                          {
+                              FeedType = FeedType.RSS,
+                              Content = item.Elements().First(i => i.Name.LocalName == "description").Value,
+                              Link = item.Elements().First(i => i.Name.LocalName == "link").Value,
+                              PublishDate = ParseDate(item.Elements().First(i => i.Name.LocalName == "pubDate").Value),
+                              Title = item.Elements().First(i => i.Name.LocalName == "title").Value.Replace(" 4K (Blu-ray)", "").Replace(" (Blu-ray)", "")
+                          };
+
+            ItemList items = new ItemList() { List = entries.ToList() };
+            return items;
         }
 
         private void AddVideo(OMDB omdb)
@@ -378,8 +351,28 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 //new TaskTriggerInfo {Type = TaskTriggerInfo.TriggerStartup},
 
                 // Every so often
-                new TaskTriggerInfo { Type = TaskTriggerInfo.TriggerInterval, IntervalTicks = TimeSpan.FromHours(12).Ticks}
+                new TaskTriggerInfo { Type = TaskTriggerInfo.TriggerInterval, IntervalTicks = TimeSpan.FromHours(4).Ticks}
             };
+        }
+
+        public IEnumerable<ImageType> GetSupportedImages(IHasImages item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<RemoteImageInfo>> GetImages(IHasImages item, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Supports(IHasImages item)
+        {
+            throw new NotImplementedException();
         }
     }
 }

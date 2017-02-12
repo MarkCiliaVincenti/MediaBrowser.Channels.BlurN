@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MediaBrowser.Channels.BlurN.Helpers
 {
@@ -25,5 +22,10 @@ namespace MediaBrowser.Channels.BlurN.Helpers
             PublishDate = DateTime.Today;
             FeedType = FeedType.RSS;
         }
+    }
+
+    public class ItemList
+    {
+        public IList<Item> List { get; set; }
     }
 }

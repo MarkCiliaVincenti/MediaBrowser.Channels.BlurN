@@ -124,32 +124,22 @@ namespace MediaBrowser.Channels.BlurN
 
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
-            if (Plugin.Instance.Configuration.LastPublishDate.Equals(new DateTime(2017, 1, 1, 0, 0, 0, DateTimeKind.Utc)))
-            {
-                BlurNTasks tasks = new BlurNTasks(_json, _appPaths, _fileSystem);
-                await tasks.ResetDatabase().ConfigureAwait(false);
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
-            bool debug = Plugin.Instance.Configuration.EnableDebugLogging;
+            var config = await BlurNTasks.CheckIfResetDatabaseRequested(cancellationToken, _json, _appPaths, _fileSystem).ConfigureAwait(false);
+
+            bool debug = config.EnableDebugLogging;
 
             if (debug)
                 Plugin.Logger.Debug("[BlurN] Entered BlurN channel list");
 
             User user = _userManager.GetUserById(query.UserId);
 
-            IEnumerable<BaseItem> library;
-            library = _libraryManager.GetItemList(new InternalItemsQuery() { HasImdbId = true, User = user, IsPlayed = true, SourceTypes = new SourceType[] { SourceType.Library } });
-            Dictionary<string, BaseItem> libDict = new Dictionary<string, BaseItem>();
-            foreach (BaseItem libItem in library)
-            {
-                string libIMDbId = libItem.GetProviderId(MetadataProviders.Imdb);
-                if (!libDict.ContainsKey(libIMDbId))
-                    libDict.Add(libIMDbId, libItem);
-            }
+            Dictionary<string, BaseItem> libDict = Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery() { HasImdbId = true, User = user, IsPlayed = true, SourceTypes = new SourceType[] { SourceType.Library } });
 
             OMDBList items = new OMDBList();
-            if (Plugin.Instance.Configuration.Items.List.Count > 0)
-                items.List = Plugin.Instance.Configuration.Items.List;
+            if (config.Items.List.Count > 0)
+                items.List = config.Items.List;
             else
             {
                 string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
@@ -227,7 +217,7 @@ namespace MediaBrowser.Channels.BlurN
 
                     var cii = new ChannelItemInfo()
                     {
-                        Id = Plugin.Instance.PluginConfiguration.ChannelRefreshCount.ToString() + "-" + omdb.ImdbId,
+                        Id = config.ChannelRefreshCount.ToString() + "-" + omdb.ImdbId,
                         IndexNumber = i,
                         CommunityRating = (float)omdb.ImdbRating,
                         ContentType = ChannelMediaContentType.Movie,

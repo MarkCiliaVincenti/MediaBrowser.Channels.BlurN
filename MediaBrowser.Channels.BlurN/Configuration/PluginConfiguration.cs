@@ -20,7 +20,7 @@ namespace MediaBrowser.Channels.BlurN.Configuration
 
         public PluginConfiguration()
         {
-            ChannelRefreshCount = 0;
+            ChannelRefreshCount = 1;
             MinimumIMDBRating = 7.0m;
             MinimumIMDBVotes = 1000;
             Age = 365;

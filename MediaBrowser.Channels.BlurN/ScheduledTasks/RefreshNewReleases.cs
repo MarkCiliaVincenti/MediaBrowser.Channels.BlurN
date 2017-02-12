@@ -15,12 +15,9 @@ using System.IO;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using System.Net.Http;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Providers;
-using MediaBrowser.Controller.Entities.Movies;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 {
@@ -149,6 +146,29 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             var config = await BlurNTasks.CheckIfResetDatabaseRequested(cancellationToken, _json, _appPaths, _fileSystem).ConfigureAwait(false);
 
+            string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
+
+            if (config.ChannelRefreshCount == 0 && _fileSystem.FileExists(dataPath))
+            {
+                // Convert posters from w640 to original
+                if (_fileSystem.FileExists(dataPath))
+                {
+                    var existingData = _json.DeserializeFromFile<List<OMDB>>(dataPath);
+
+                    if (existingData != null)
+                    {
+                        foreach (OMDB omdb in existingData.Where(o => !o.TmdbId.HasValue))
+                            omdb.Poster = omdb.Poster.Replace("/w640/", "/original/");
+
+                        _json.SerializeToFile(existingData, dataPath);
+                    }
+                }
+
+                config.ChannelRefreshCount = 1;
+                Plugin.Instance.SaveConfiguration();
+            }
+
+
             bool debug = config.EnableDebugLogging;
 
             if (debug)
@@ -242,8 +262,6 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             if (config.Items.List.Count > 0)
                 insertList.List.AddRange(config.Items.List);
-
-            string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
 
             if (_fileSystem.FileExists(dataPath))
             {

@@ -148,23 +148,20 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
 
-            if (config.ChannelRefreshCount < 2 && _fileSystem.FileExists(dataPath))
+            if (config.ChannelRefreshCount < 3 && _fileSystem.FileExists(dataPath))
             {
                 // Convert posters from w640 to original
-                if (_fileSystem.FileExists(dataPath))
+                var existingData = _json.DeserializeFromFile<List<OMDB>>(dataPath);
+
+                if (existingData != null)
                 {
-                    var existingData = _json.DeserializeFromFile<List<OMDB>>(dataPath);
+                    foreach (OMDB omdb in existingData.Where(o => o.TmdbId.HasValue))
+                        omdb.Poster = omdb.Poster.Replace("/w640/", "/original/");
 
-                    if (existingData != null)
-                    {
-                        foreach (OMDB omdb in existingData.Where(o => !o.TmdbId.HasValue))
-                            omdb.Poster = omdb.Poster.Replace("/w640/", "/original/");
-
-                        _json.SerializeToFile(existingData, dataPath);
-                    }
+                    _json.SerializeToFile(existingData, dataPath);
                 }
 
-                config.ChannelRefreshCount = 2;
+                config.ChannelRefreshCount = 3;
                 Plugin.Instance.SaveConfiguration();
             }
 

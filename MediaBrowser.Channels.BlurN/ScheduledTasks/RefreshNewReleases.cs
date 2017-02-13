@@ -148,7 +148,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
 
-            if (config.ChannelRefreshCount == 0 && _fileSystem.FileExists(dataPath))
+            if (config.ChannelRefreshCount < 2 && _fileSystem.FileExists(dataPath))
             {
                 // Convert posters from w640 to original
                 if (_fileSystem.FileExists(dataPath))
@@ -164,7 +164,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     }
                 }
 
-                config.ChannelRefreshCount = 1;
+                config.ChannelRefreshCount = 2;
                 Plugin.Instance.SaveConfiguration();
             }
 
@@ -351,13 +351,6 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             ItemList items = new ItemList() { List = entries.ToList() };
             return items;
-        }
-
-        private void AddVideo(OMDB omdb)
-        {
-            var items = Plugin.Instance.Configuration.Items;
-            items.List.Add(omdb);
-            Plugin.Instance.SaveConfiguration();
         }
 
         public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()

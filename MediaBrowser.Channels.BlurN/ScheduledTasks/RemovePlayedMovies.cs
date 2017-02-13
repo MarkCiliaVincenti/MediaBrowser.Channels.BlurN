@@ -88,6 +88,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             library = _libraryManager.GetItemList(new InternalItemsQuery() { HasImdbId = true, SourceTypes = new SourceType[] { SourceType.Library } });
 
+
+
             if (debug)
                 Plugin.Logger.Debug("[BlurN] Library count is " + library.Count());
 
@@ -153,8 +155,6 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                                 Plugin.Logger.Debug("[BlurN] Saving updated BlurN database");
 
                             _json.SerializeToFile(existingData, dataPath);
-                            //config.ChannelRefreshCount++;
-                            //Plugin.Instance.SaveConfiguration();
                         }
                     }
                 }

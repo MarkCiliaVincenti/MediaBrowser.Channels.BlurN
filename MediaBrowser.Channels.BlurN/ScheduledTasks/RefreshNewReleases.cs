@@ -82,14 +82,28 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
         public async virtual Task<OMDB> ParseOMDB(string url, DateTime bluRayReleaseDate)
         {
+            string result = "";
             try
             {
-                string result = await HTTP.GetPage(url).ConfigureAwait(false);
+                result = await HTTP.GetPage(url).ConfigureAwait(false);
                 XDocument doc = XDocument.Parse(result);
                 XElement root = doc.Root;
                 if (root.Elements().First().Name.ToString() == "movie")
                 {
                     var entry = doc.Root.Element("movie");
+
+                    int year = 0;
+                    Int32.TryParse(entry.Attribute("year").Value, out year);
+
+                    decimal imdbRating = 0;
+                    decimal.TryParse(entry.Attribute("imdbRating").Value, out imdbRating);
+
+                    int imdbVotes = 0;
+                    Int32.TryParse(entry.Attribute("imdbVotes").Value.Replace(",", ""), out imdbVotes);
+
+                    DateTime released = DateTime.MinValue;
+                    if (entry.Attribute("released").Value != "N/A")
+                        released = ParseDate(entry.Attribute("released").Value);
 
                     return new OMDB()
                     {
@@ -109,10 +123,10 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                         Type = entry.Attribute("type").Value,
                         Writer = entry.Attribute("writer").Value,
                         Title = entry.Attribute("title").Value,
-                        Year = Convert.ToInt32(entry.Attribute("year").Value),
-                        ImdbRating = Convert.ToDecimal(entry.Attribute("imdbRating").Value),
-                        ImdbVotes = Convert.ToInt32(entry.Attribute("imdbVotes").Value.Replace(",", "")),
-                        Released = ParseDate(entry.Attribute("released").Value)
+                        Year = year,
+                        ImdbRating = imdbRating,
+                        ImdbVotes = imdbVotes,
+                        Released = released
                     };
                 }
                 else if (Plugin.Instance.Configuration.EnableDebugLogging)

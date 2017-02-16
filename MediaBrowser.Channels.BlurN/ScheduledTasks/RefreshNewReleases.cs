@@ -21,6 +21,7 @@ using MediaBrowser.Model.Providers;
 using System.Net.Http;
 using System.Reflection;
 using MediaBrowser.Common;
+using MediaBrowser.Controller.Configuration;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 {
@@ -31,17 +32,20 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         private readonly IApplicationPaths _appPaths;
         private readonly IFileSystem _fileSystem;
         private readonly ILibraryManager _libraryManager;
+        private readonly IConfigurationManager _configurationManager;
+        private readonly IServerConfigurationManager _serverConfigurationManager;
 
         private const string bluRayReleaseUri = "http://www.blu-ray.com/rss/newreleasesfeed.xml";
         private const string baseOmdbApiUri = "http://www.omdbapi.com";
 
-        public RefreshNewReleases(IApplicationHost appHost, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager)
+        public RefreshNewReleases(IApplicationHost appHost, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager, IServerConfigurationManager serverConfigurationManager)
         {
             _appHost = appHost;
             _json = json;
             _appPaths = appPaths;
             _fileSystem = fileSystem;
             _libraryManager = libraryManager;
+            _serverConfigurationManager = serverConfigurationManager;
         }
 
         private string EmbyUserAgent
@@ -191,6 +195,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                         { "ds", "app" },
                         { "ua", EmbyUserAgent },
                         { "sc", sessionControl },
+                        { "ul", _serverConfigurationManager.Configuration.UICulture.ToLower() },
                         { "z", new Random().Next(1,2147483647).ToString() }
                     };
 

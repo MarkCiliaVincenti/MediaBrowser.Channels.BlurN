@@ -175,16 +175,6 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 using (var client = new HttpClient())
                 {
                     string version = typeof(RefreshNewReleases).GetTypeInfo().Assembly.GetName().Version.ToString();
-                    string settings = string.Format("LastPublishDate={0},ChannelRefreshCount={1},Age={2},MinRating={3},MinVotes={4),AddItemsAlreadyInLibrary={5},Notification={6},Debug={7}",
-                        config.LastPublishDate.ToString("yyyy-MM-dd"),
-                        config.ChannelRefreshCount.ToString(),
-                        config.Age.ToString(),
-                        config.MinimumIMDBRating.ToString("0.00"),
-                        config.MinimumIMDBVotes.ToString(),
-                        config.AddItemsAlreadyInLibrary.ToString(),
-                        config.EnableNewReleaseNotification.ToString(),
-                        config.EnableDebugLogging.ToString()
-                    );
 
                     var values = new Dictionary<string, string>
                     {
@@ -195,7 +185,6 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                         { "ec", "refresh" },
                         { "ea", version },
                         { "el", config.ChannelRefreshCount.ToString() },
-                        { "ev", settings },
                         { "an", "BlurN" },
                         { "aid", "MediaBrowser.Channels.BlurN" },
                         { "av", version },

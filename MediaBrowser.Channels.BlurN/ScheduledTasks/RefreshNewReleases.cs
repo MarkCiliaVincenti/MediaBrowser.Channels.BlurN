@@ -20,11 +20,13 @@ using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Providers;
 using System.Net.Http;
 using System.Reflection;
+using MediaBrowser.Common;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 {
     class RefreshNewReleases : IScheduledTask
     {
+        private readonly IApplicationHost _appHost;
         private readonly IJsonSerializer _json;
         private readonly IApplicationPaths _appPaths;
         private readonly IFileSystem _fileSystem;
@@ -33,12 +35,18 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         private const string bluRayReleaseUri = "http://www.blu-ray.com/rss/newreleasesfeed.xml";
         private const string baseOmdbApiUri = "http://www.omdbapi.com";
 
-        public RefreshNewReleases(IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager)
+        public RefreshNewReleases(IApplicationHost appHost, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager)
         {
+            _appHost = appHost;
             _json = json;
             _appPaths = appPaths;
             _fileSystem = fileSystem;
             _libraryManager = libraryManager;
+        }
+
+        private string EmbyUserAgent
+        {
+            get { return "Emby/" + _appHost.ApplicationVersion; }
         }
 
 
@@ -87,7 +95,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             string result = "";
             try
             {
-                result = await HTTP.GetPage(url).ConfigureAwait(false);
+                result = await HTTP.GetPage(url, EmbyUserAgent).ConfigureAwait(false);
                 XDocument doc = XDocument.Parse(result);
                 XElement root = doc.Root;
                 if (root.Elements().First().Name.ToString() == "movie")
@@ -153,11 +161,12 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 return DateTime.MinValue;
         }
 
-        private async Task Track()
+        private async Task Track(string sessionControl)
         {
-            if (string.IsNullOrEmpty(Plugin.Instance.Configuration.InstallationID))
+            var config = Plugin.Instance.Configuration;
+            if (string.IsNullOrEmpty(config.InstallationID))
             {
-                Plugin.Instance.Configuration.InstallationID = Guid.NewGuid().ToString();
+                config.InstallationID = Guid.NewGuid().ToString();
                 Plugin.Instance.SaveConfiguration();
             }
 
@@ -171,14 +180,16 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                         { "v", "1" },
                         { "t", "event" },
                         { "tid", "UA-92060336-1" },
-                        { "cid", Plugin.Instance.Configuration.InstallationID },
+                        { "cid", config.InstallationID },
                         { "ec", "refresh" },
                         { "ea", version },
-                        { "el", Plugin.Instance.Configuration.ChannelRefreshCount.ToString() },
+                        { "el", config.ChannelRefreshCount.ToString() },
                         { "an", "BlurN" },
                         { "aid", "MediaBrowser.Channels.BlurN" },
                         { "av", version },
-                        { "ds", "app" }
+                        { "ds", "app" },
+                        { "ua", EmbyUserAgent },
+                        { "sc", sessionControl }
                     };
 
                     var content = new FormUrlEncodedContent(values);
@@ -188,7 +199,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             }
             catch (Exception ex)
             {
-                if (Plugin.Instance.Configuration.EnableDebugLogging)
+                if (config.EnableDebugLogging)
                     Plugin.Logger.Debug("[BlurN] Failed to track usage with GA: " + ex.Message);
             }
         }
@@ -197,6 +208,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         public async Task Execute(CancellationToken cancellationToken, IProgress<double> progress)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            await Track("start").ConfigureAwait(false);
 
             var items = (await GetBluRayReleaseItems(cancellationToken).ConfigureAwait(false)).List;
 
@@ -344,7 +357,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             if (debug)
                 Plugin.Logger.Debug("[BlurN] json files saved");
 
-            await Track().ConfigureAwait(false);
+            await Track("end").ConfigureAwait(false);
 
             progress.Report(100);
             return;
@@ -356,7 +369,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             try
             {
-                string tmdbContent = await HTTP.GetPage("https://api.themoviedb.org/3/find/" + omdb.ImdbId + "?api_key=3e97b8d1c00a0f2fe72054febe695276&external_source=imdb_id").ConfigureAwait(false);
+                string tmdbContent = await HTTP.GetPage("https://api.themoviedb.org/3/find/" + omdb.ImdbId + "?api_key=3e97b8d1c00a0f2fe72054febe695276&external_source=imdb_id", EmbyUserAgent).ConfigureAwait(false);
                 var tmdb = _json.DeserializeFromString<TmdbMovieFindResult>(tmdbContent);
                 TmdbMovieSearchResult tmdbMovie = tmdb.movie_results.First();
                 omdb.Poster = "https://image.tmdb.org/t/p/original" + tmdbMovie.poster_path;
@@ -388,7 +401,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
         private async Task<ItemList> GetBluRayReleaseItems(CancellationToken cancellationToken)
         {
-            string bluRayReleaseContent = await HTTP.GetPage(bluRayReleaseUri).ConfigureAwait(false);
+            string bluRayReleaseContent = await HTTP.GetPage(bluRayReleaseUri, EmbyUserAgent).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 

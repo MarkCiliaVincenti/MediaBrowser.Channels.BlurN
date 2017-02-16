@@ -178,7 +178,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                         { "an", "BlurN" },
                         { "aid", "MediaBrowser.Channels.BlurN" },
                         { "av", version },
-                        { "ds", "embyserver" }
+                        { "ds", "app" }
                     };
 
                     var content = new FormUrlEncodedContent(values);

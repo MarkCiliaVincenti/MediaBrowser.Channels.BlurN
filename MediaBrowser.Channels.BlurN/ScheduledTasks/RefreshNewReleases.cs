@@ -18,6 +18,8 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Providers;
+using System.Net.Http;
+using System.Reflection;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 {
@@ -149,6 +151,41 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 return result;
             else
                 return DateTime.MinValue;
+        }
+
+        private async Task Track()
+        {
+            if (string.IsNullOrEmpty(Plugin.Instance.Configuration.InstallationID))
+            {
+                Plugin.Instance.Configuration.InstallationID = Guid.NewGuid().ToString();
+                Plugin.Instance.SaveConfiguration();
+            }
+
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    var values = new Dictionary<string, string>
+                {
+                    { "v", "1" },
+                    { "t", "event" },
+                    { "tid", "UA-92060336-1" },
+                    { "cid", Plugin.Instance.Configuration.InstallationID },
+                    { "ec", "refresh" },
+                    { "ea", typeof(RefreshNewReleases).GetTypeInfo().Assembly.GetName().Version.ToString() },
+                    { "el", Plugin.Instance.Configuration.ChannelRefreshCount.ToString() },
+                };
+
+                    var content = new FormUrlEncodedContent(values);
+                    var response = await client.PostAsync("https://www.google-analytics.com/collect", content);
+                    var responseString = await response.Content.ReadAsStringAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Plugin.Instance.Configuration.EnableDebugLogging)
+                    Plugin.Logger.Debug("[BlurN] Failed to track usage with GA: " + ex.Message);
+            }
         }
 
 
@@ -301,6 +338,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             if (debug)
                 Plugin.Logger.Debug("[BlurN] json files saved");
+
+            await Track().ConfigureAwait(false);
 
             progress.Report(100);
             return;

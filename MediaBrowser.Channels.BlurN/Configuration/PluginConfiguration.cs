@@ -17,6 +17,7 @@ namespace MediaBrowser.Channels.BlurN.Configuration
         public Boolean EnableDebugLogging { get; set; }
         public int ChannelRefreshCount { get; set; }
         public OMDBList Items { get; set; }
+        public string InstallationID { get; set; }
 
         public PluginConfiguration()
         {
@@ -29,6 +30,7 @@ namespace MediaBrowser.Channels.BlurN.Configuration
             EnableNewReleaseNotification = true;
             EnableDebugLogging = false;
             Items = new OMDBList();
+            InstallationID = Guid.NewGuid().ToString();
         }
     }
 }

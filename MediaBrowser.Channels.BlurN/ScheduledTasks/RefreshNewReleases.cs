@@ -165,16 +165,21 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             {
                 using (var client = new HttpClient())
                 {
+                    string version = typeof(RefreshNewReleases).GetTypeInfo().Assembly.GetName().Version.ToString();
                     var values = new Dictionary<string, string>
-                {
-                    { "v", "1" },
-                    { "t", "event" },
-                    { "tid", "UA-92060336-1" },
-                    { "cid", Plugin.Instance.Configuration.InstallationID },
-                    { "ec", "refresh" },
-                    { "ea", typeof(RefreshNewReleases).GetTypeInfo().Assembly.GetName().Version.ToString() },
-                    { "el", Plugin.Instance.Configuration.ChannelRefreshCount.ToString() },
-                };
+                    {
+                        { "v", "1" },
+                        { "t", "event" },
+                        { "tid", "UA-92060336-1" },
+                        { "cid", Plugin.Instance.Configuration.InstallationID },
+                        { "ec", "refresh" },
+                        { "ea", version },
+                        { "el", Plugin.Instance.Configuration.ChannelRefreshCount.ToString() },
+                        { "an", "BlurN" },
+                        { "aid", "MediaBrowser.Channels.BlurN" },
+                        { "av", version },
+                        { "ds", "embyserver" }
+                    };
 
                     var content = new FormUrlEncodedContent(values);
                     var response = await client.PostAsync("https://www.google-analytics.com/collect", content);

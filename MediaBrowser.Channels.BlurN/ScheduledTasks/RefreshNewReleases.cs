@@ -190,7 +190,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                         { "av", version },
                         { "ds", "app" },
                         { "ua", EmbyUserAgent },
-                        { "sc", sessionControl }
+                        { "sc", sessionControl },
+                        { "z", new Random().Next(1,2147483647).ToString() }
                     };
 
                     var content = new FormUrlEncodedContent(values);

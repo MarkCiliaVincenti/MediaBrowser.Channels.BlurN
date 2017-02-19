@@ -19,7 +19,7 @@ using System.IO;
 
 namespace MediaBrowser.Channels.BlurN
 {
-    public class BlurNChannel : IChannel, IHasCacheKey
+    public class BlurNChannel : IChannel, IIndexableChannel, ISupportsLatestMedia, IHasCacheKey
     {
         private readonly IJsonSerializer _json;
         private readonly IApplicationPaths _appPaths;
@@ -125,12 +125,18 @@ namespace MediaBrowser.Channels.BlurN
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            return await GetItems(true, query, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<ChannelItemResult> GetItems(bool inChannel, InternalChannelItemQuery query, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
 
             var config = await BlurNTasks.CheckIfResetDatabaseRequested(cancellationToken, _json, _appPaths, _fileSystem).ConfigureAwait(false);
 
             bool debug = config.EnableDebugLogging;
 
-            if (debug)
+            if (inChannel && debug)
                 Plugin.Logger.Debug("[BlurN] Entered BlurN channel list");
 
             User user = _userManager.GetUserById(query.UserId);
@@ -148,12 +154,12 @@ namespace MediaBrowser.Channels.BlurN
                     items.List = _json.DeserializeFromFile<List<OMDB>>(dataPath);
             }
 
-            if (debug)
+            if (inChannel && debug)
                 Plugin.Logger.Debug("[BlurN] Retrieved items");
 
             if (items == null)
             {
-                if (debug)
+                if (inChannel && debug)
                     Plugin.Logger.Debug("[BlurN] Items is null, set to new list");
                 items = new OMDBList();
                 Plugin.Instance.SaveConfiguration();
@@ -173,13 +179,13 @@ namespace MediaBrowser.Channels.BlurN
                     limit = items.List.Count - index;
 
                 showList.List = items.List.GetRange(index, limit);
-                if (debug)
+                if (inChannel && debug)
                     Plugin.Logger.Debug("[BlurN] Showing range with index {0} and limit {1}", index, limit);
             }
             else
             {
                 showList.List = items.List;
-                if (debug)
+                if (inChannel && debug)
                     Plugin.Logger.Debug("[BlurN] Showing full list");
             }
 
@@ -193,12 +199,12 @@ namespace MediaBrowser.Channels.BlurN
                 {
                     result.TotalRecordCount--;
 
-                    if (debug)
+                    if (inChannel && debug)
                         Plugin.Logger.Debug("[BlurN] Hiding movie '{0}' from BlurN channel list as watched by user", omdb.Title);
                 }
                 else
                 {
-                    if (debug)
+                    if (inChannel && debug)
                         Plugin.Logger.Debug("[BlurN] Showing movie '{0}' to BlurN channel list", omdb.Title);
 
                     List<string> directors = (string.IsNullOrEmpty(omdb.Director)) ? new List<string>() : omdb.Director.Replace(", ", ",").Split(',').ToList();
@@ -242,12 +248,12 @@ namespace MediaBrowser.Channels.BlurN
 
                     result.Items.Add(cii);
 
-                    if (debug)
+                    if (inChannel && debug)
                         Plugin.Logger.Debug("[BlurN] Added movie '{0}' to BlurN channel list", omdb.Title);
                 }
             }
 
-            if (debug)
+            if (inChannel && debug)
                 Plugin.Logger.Debug("[BlurN] Set total record count ({0})", (int)result.TotalRecordCount);
 
             return result;
@@ -269,6 +275,42 @@ namespace MediaBrowser.Channels.BlurN
         public string GetCacheKey(string userId)
         {
             return DataVersion;
+        }
+
+        public async Task<ChannelItemResult> GetAllMedia(InternalAllChannelMediaQuery query, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var channelItemResult = await GetItems(false, new InternalChannelItemQuery { UserId = query.UserId }, cancellationToken).ConfigureAwait(false);
+
+            if (query.ContentTypes.Length > 0)
+            {
+                channelItemResult.Items = channelItemResult.Items.Where(i => query.ContentTypes.Contains(i.ContentType)).ToList();
+            }
+            if (query.ExtraTypes.Length > 0)
+            {
+                channelItemResult.Items = channelItemResult.Items.Where(i => query.ExtraTypes.Contains(i.ExtraType)).ToList();
+            }
+            if (query.TrailerTypes.Length > 0)
+            {
+                channelItemResult.Items = channelItemResult.Items.Where(i => i.TrailerTypes.Any(t => query.TrailerTypes.Contains(t))).ToList();
+            }
+
+            channelItemResult.TotalRecordCount = channelItemResult.Items.Count;
+            return channelItemResult;
+        }
+
+        public async Task<IEnumerable<ChannelItemInfo>> GetLatestMedia(ChannelLatestMediaSearch request, CancellationToken cancellationToken)
+        {
+            var result = await GetChannelItems(new InternalChannelItemQuery
+            {
+                SortBy = ChannelItemSortField.DateCreated,
+                SortDescending = true,
+                UserId = request.UserId,
+                StartIndex = 0,
+                Limit = 6
+            }, cancellationToken).ConfigureAwait(false);
+
+            return result.Items;
         }
     }
 }

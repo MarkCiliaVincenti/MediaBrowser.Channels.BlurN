@@ -36,7 +36,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         private readonly IServerConfigurationManager _serverConfigurationManager;
 
         private const string bluRayReleaseUri = "http://www.blu-ray.com/rss/newreleasesfeed.xml";
-        private const string baseOmdbApiUri = "http://www.omdbapi.com";
+        private const string baseOmdbApiUri = "https://www.omdbapi.com";
 
         public RefreshNewReleases(IApplicationHost appHost, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager, IServerConfigurationManager serverConfigurationManager)
         {
@@ -149,7 +149,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 }
                 return new OMDB();
             }
-            catch (Exception ex)
+            catch
             {
                 return null;
             }
@@ -224,23 +224,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
 
-            if (config.ChannelRefreshCount < 3 && _fileSystem.FileExists(dataPath))
-            {
-                // Convert posters from w640 to original
-                var existingData = _json.DeserializeFromFile<List<OMDB>>(dataPath);
-
-                if (existingData != null)
-                {
-                    foreach (OMDB omdb in existingData.Where(o => o.TmdbId.HasValue))
-                        omdb.Poster = omdb.Poster.Replace("/w640/", "/original/");
-
-                    _json.SerializeToFile(existingData, dataPath);
-                }
-
-                config.ChannelRefreshCount = 3;
-                Plugin.Instance.SaveConfiguration();
-            }
-
+            ConvertPostersFromW640ToOriginal(config, dataPath);
 
             bool debug = config.EnableDebugLogging;
 
@@ -368,6 +352,26 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             progress.Report(100);
             return;
+        }
+
+        private void ConvertPostersFromW640ToOriginal(Configuration.PluginConfiguration config, string dataPath)
+        {
+            if (config.ChannelRefreshCount < 3 && _fileSystem.FileExists(dataPath))
+            {
+                // Convert posters from w640 to original
+                var existingData = _json.DeserializeFromFile<List<OMDB>>(dataPath);
+
+                if (existingData != null)
+                {
+                    foreach (OMDB omdb in existingData.Where(o => o.TmdbId.HasValue))
+                        omdb.Poster = omdb.Poster.Replace("/w640/", "/original/");
+
+                    _json.SerializeToFile(existingData, dataPath);
+                }
+
+                config.ChannelRefreshCount = 3;
+                Plugin.Instance.SaveConfiguration();
+            }
         }
 
         private async Task UpdateContentWithTmdbData(CancellationToken cancellationToken, OMDB omdb)

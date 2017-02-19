@@ -6,8 +6,6 @@ namespace MediaBrowser.Channels.BlurN.Helpers
 {
     class HTTP
     {
-        //private const string userAgent = "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; WOW64; Trident/6.0)";
-
         public static async Task<string> GetPage(string uri, string userAgent)
         {
             string result;

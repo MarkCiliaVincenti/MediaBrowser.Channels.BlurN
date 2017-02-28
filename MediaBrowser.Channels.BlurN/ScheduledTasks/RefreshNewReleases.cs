@@ -282,9 +282,14 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     url = baseOmdbApiUri + "/?t=" + WebUtility.UrlEncode(item.Title.Remove(item.Title.Length - 3)) + "&y=" + year.ToString() + "&plot=short&r=xml";
                     omdb = await ParseOMDB(url, item.PublishDate).ConfigureAwait(false);
                 }
+
                 if (omdb == null)
                     failedList.List.Add(new FailedOMDB() { Title = item.Title, Year = year });
-
+                else if (!string.IsNullOrEmpty(omdb.ImdbId) && insertList.List.Any(x => x.ImdbId == omdb.ImdbId))
+                {
+                    if (debug)
+                        Plugin.Logger.Debug("[BlurN] " + omdb.ImdbId + " is a duplicate, skipped.");
+                }
                 else if (!string.IsNullOrEmpty(omdb.ImdbId) && !config.AddItemsAlreadyInLibrary && libDict.ContainsKey(omdb.ImdbId))
                 {
                     if (debug)
@@ -324,8 +329,17 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             {
                 var existingData = _json.DeserializeFromFile<List<OMDB>>(dataPath);
 
+                if (config.ChannelRefreshCount < 4)
+                {
+                    existingData = existingData.GroupBy(p => p.ImdbId).Select(g => g.First()).ToList();
+                    config.ChannelRefreshCount = 4;
+                    Plugin.Instance.SaveConfiguration();
+                }
+
                 if (existingData != null)
                 {
+                    insertList.List = insertList.List.Where(x => !existingData.Select(d => d.ImdbId).Contains(x.ImdbId)).ToList();
+
                     foreach (OMDB omdb in existingData.Where(o => !o.TmdbId.HasValue))
                         await UpdateContentWithTmdbData(cancellationToken, omdb).ConfigureAwait(false);
 

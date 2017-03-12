@@ -22,9 +22,9 @@ namespace MediaBrowser.Channels.BlurN.Configuration
         public PluginConfiguration()
         {
             ChannelRefreshCount = 1;
-            MinimumIMDBRating = 7.0m;
+            MinimumIMDBRating = 6.8m;
             MinimumIMDBVotes = 1000;
-            Age = 365;
+            Age = 730;
             LastPublishDate = DateTime.MinValue;
             AddItemsAlreadyInLibrary = true;
             EnableNewReleaseNotification = true;

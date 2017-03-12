@@ -141,7 +141,7 @@ namespace MediaBrowser.Channels.BlurN
 
             User user = _userManager.GetUserById(query.UserId);
 
-            Dictionary<string, BaseItem> libDict = Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery() { HasImdbId = true, User = user, IsPlayed = true, SourceTypes = new SourceType[] { SourceType.Library } });
+            Dictionary<string, BaseItem> libDict = Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery() { HasImdbId = true, User = user, SourceTypes = new SourceType[] { SourceType.Library } });
 
             OMDBList items = new OMDBList();
             if (config.Items.List.Count > 0)
@@ -195,7 +195,8 @@ namespace MediaBrowser.Channels.BlurN
             {
                 OMDB omdb = showList.List[i];
 
-                if (libDict.ContainsKey(omdb.ImdbId))
+                BaseItem libraryItem;
+                if (libDict.TryGetValue(omdb.ImdbId, out libraryItem) && libraryItem.IsPlayed(user))
                 {
                     result.TotalRecordCount--;
 
@@ -245,6 +246,17 @@ namespace MediaBrowser.Channels.BlurN
                     cii.SetProviderId(MetadataProviders.Imdb, omdb.ImdbId);
                     if (omdb.TmdbId.HasValue)
                         cii.SetProviderId(MetadataProviders.Tmdb, omdb.TmdbId.Value.ToString());
+
+                    if (libraryItem != default(BaseItem))
+                    {
+                        ChannelMediaInfo cmi = new ChannelMediaInfo()
+                        {
+                            Path = libraryItem.Path,
+                            Container = libraryItem.Container,
+                            RunTimeTicks = libraryItem.RunTimeTicks
+                        };
+                        cii.MediaSources = new List<ChannelMediaInfo>() { cmi };
+                    }
 
                     result.Items.Add(cii);
 

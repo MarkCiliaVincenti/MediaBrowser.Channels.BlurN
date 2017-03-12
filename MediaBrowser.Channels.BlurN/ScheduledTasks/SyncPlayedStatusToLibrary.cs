@@ -120,7 +120,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                         }
                     }
 
-                    progress.Report(((u + (i + 1 / items.List.Count)) / users.Count) * 100);
+                    progress.Report(((u + ((i + 1) / items.List.Count)) / users.Count) * 100);
                 }
             }
 

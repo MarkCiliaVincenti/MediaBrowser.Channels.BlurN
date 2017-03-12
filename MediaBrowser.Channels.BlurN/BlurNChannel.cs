@@ -16,6 +16,8 @@ using MediaBrowser.Model.Serialization;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Model.IO;
 using System.IO;
+using MediaBrowser.Model.Dto;
+using MediaBrowser.Model.Querying;
 
 namespace MediaBrowser.Channels.BlurN
 {
@@ -26,14 +28,16 @@ namespace MediaBrowser.Channels.BlurN
         private readonly IFileSystem _fileSystem;
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
+        private readonly IUserDataManager _userDataManager;
 
-        public BlurNChannel(IUserManager userManager, ILibraryManager libraryManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem)
+        public BlurNChannel(IUserManager userManager, ILibraryManager libraryManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, IUserDataManager userDataManager)
         {
             _json = json;
             _appPaths = appPaths;
             _fileSystem = fileSystem;
             _userManager = userManager;
             _libraryManager = libraryManager;
+            _userDataManager = userDataManager;
         }
 
 
@@ -74,6 +78,30 @@ namespace MediaBrowser.Channels.BlurN
             get
             {
                 return ChannelParentalRating.UsR;
+            }
+        }
+
+        public bool EnableRememberingTrackSelections
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public bool SupportsPlayedStatus
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public Guid Id
+        {
+            get
+            {
+                throw new NotImplementedException();
             }
         }
 

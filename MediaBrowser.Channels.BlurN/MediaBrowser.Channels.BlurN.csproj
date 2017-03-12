@@ -49,6 +49,7 @@
     <Compile Include="Helpers\TMDb.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ScheduledTasks\SyncPlayedStatusToLibrary.cs" />
     <Compile Include="ScheduledTasks\RemovePlayedMovies.cs" />
     <Compile Include="ScheduledTasks\RefreshNewReleases.cs" />
   </ItemGroup>

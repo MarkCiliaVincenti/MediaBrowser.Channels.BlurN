@@ -29,9 +29,11 @@ namespace MediaBrowser.Channels.BlurN
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
         private readonly IUserDataManager _userDataManager;
+        private readonly IMediaSourceManager _mediaSourceManager;
 
-        public BlurNChannel(IUserManager userManager, ILibraryManager libraryManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, IUserDataManager userDataManager)
+        public BlurNChannel(IMediaSourceManager mediaSourceManager, IUserManager userManager, ILibraryManager libraryManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, IUserDataManager userDataManager)
         {
+            _mediaSourceManager = mediaSourceManager;
             _json = json;
             _appPaths = appPaths;
             _fileSystem = fileSystem;
@@ -171,6 +173,9 @@ namespace MediaBrowser.Channels.BlurN
 
             Dictionary<string, BaseItem> libDict = Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery() { HasImdbId = true, User = user, SourceTypes = new SourceType[] { SourceType.Library } });
 
+            if (debug)
+                Plugin.Logger.Debug("[BlurN] Found {0} items in movies library", libDict.Count);
+
             OMDBList items = new OMDBList();
             if (config.Items.List.Count > 0)
                 items.List = config.Items.List;
@@ -224,7 +229,8 @@ namespace MediaBrowser.Channels.BlurN
                 OMDB omdb = showList.List[i];
 
                 BaseItem libraryItem;
-                if (libDict.TryGetValue(omdb.ImdbId, out libraryItem) && libraryItem.IsPlayed(user))
+                bool foundInLibrary = libDict.TryGetValue(omdb.ImdbId, out libraryItem);
+                if (foundInLibrary && libraryItem.IsPlayed(user))
                 {
                     result.TotalRecordCount--;
 
@@ -275,14 +281,44 @@ namespace MediaBrowser.Channels.BlurN
                     if (omdb.TmdbId.HasValue)
                         cii.SetProviderId(MetadataProviders.Tmdb, omdb.TmdbId.Value.ToString());
 
-                    if (libraryItem != default(BaseItem))
+                    if (foundInLibrary)
                     {
+                        var mediaStreams = _mediaSourceManager.GetMediaStreams(libraryItem.Id).ToList();
+
+                        var audioStream = mediaStreams.FirstOrDefault(ms => ms.Type == MediaStreamType.Audio && ms.IsDefault);
+                        var videoStream = mediaStreams.FirstOrDefault(ms => ms.Type == MediaStreamType.Video && ms.IsDefault);
+
                         ChannelMediaInfo cmi = new ChannelMediaInfo()
                         {
-                            Path = libraryItem.Path,
+                            Path = _libraryManager.GetPathAfterNetworkSubstitution(libraryItem.Path, libraryItem),
                             Container = libraryItem.Container,
-                            RunTimeTicks = libraryItem.RunTimeTicks
+                            RunTimeTicks = libraryItem.RunTimeTicks,
+                            SupportsDirectPlay = true,
+                            Id = libraryItem.Id.ToString(),
+                            Protocol = Model.MediaInfo.MediaProtocol.File
                         };
+                        
+                        if (audioStream != null)
+                        {
+                            cmi.AudioBitrate = audioStream.BitRate;
+                            cmi.AudioChannels = audioStream.Channels;
+                            cmi.AudioCodec = audioStream.Codec;
+                            cmi.AudioSampleRate = audioStream.SampleRate;
+                        }
+                        if (videoStream != null)
+                        {
+                            cmi.Framerate = videoStream.RealFrameRate;
+                            cmi.Height = videoStream.Height;
+                            cmi.IsAnamorphic = videoStream.IsAnamorphic;
+                            cmi.VideoBitrate = videoStream.BitRate;
+                            cmi.VideoCodec = videoStream.Codec;
+                            if (videoStream.Level.HasValue)
+                                cmi.VideoLevel = (float)videoStream.Level.Value;
+                            cmi.VideoProfile = videoStream.Profile;
+                            cmi.Width = videoStream.Width;
+                        }
+                        if (debug)
+                            Plugin.Logger.Debug("[BlurN] Linked movie {0} to library. Path: {1}, Substituted Path: {2}", omdb.Title, libraryItem.Path, cmi.Path);
                         cii.MediaSources = new List<ChannelMediaInfo>() { cmi };
                     }
 

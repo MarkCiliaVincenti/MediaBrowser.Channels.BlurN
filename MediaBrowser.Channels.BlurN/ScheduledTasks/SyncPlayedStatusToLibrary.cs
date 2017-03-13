@@ -5,21 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Model.Tasks;
 using MediaBrowser.Channels.BlurN.Helpers;
-using MediaBrowser.Model.Notifications;
-using System.Xml.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text.RegularExpressions;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Common.Configuration;
 using System.IO;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Querying;
-using MediaBrowser.Model.ApiClient;
-using MediaBrowser.Model.Dto;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 {

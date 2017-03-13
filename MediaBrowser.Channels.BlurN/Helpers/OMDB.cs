@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MediaBrowser.Controller.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -89,6 +90,8 @@ namespace MediaBrowser.Channels.BlurN.Helpers
 
         [XmlElement("TmdbId")]
         public int? TmdbId { get; set; }
+
+        public BaseItem LibraryItem { get; set; }
 
         public OMDB()
         {

@@ -16,8 +16,6 @@ using MediaBrowser.Model.Serialization;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Model.IO;
 using System.IO;
-using MediaBrowser.Model.Dto;
-using MediaBrowser.Model.Querying;
 
 namespace MediaBrowser.Channels.BlurN
 {
@@ -80,30 +78,6 @@ namespace MediaBrowser.Channels.BlurN
             get
             {
                 return ChannelParentalRating.UsR;
-            }
-        }
-
-        public bool EnableRememberingTrackSelections
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public bool SupportsPlayedStatus
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public Guid Id
-        {
-            get
-            {
-                throw new NotImplementedException();
             }
         }
 

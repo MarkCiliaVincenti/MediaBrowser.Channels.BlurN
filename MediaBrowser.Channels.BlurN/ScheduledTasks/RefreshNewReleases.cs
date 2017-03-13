@@ -312,7 +312,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                             Variables = variables,
                             Date = DateTime.Now,
                             Level = NotificationLevel.Normal,
-                            SendToUserMode = SendToUserType.All,
+                            //SendToUserMode = SendToUserType.All,
                             NotificationType = "BlurNNewRelease"
                         }, cancellationToken).ConfigureAwait(false);
                     }

@@ -153,15 +153,10 @@ namespace MediaBrowser.Channels.BlurN
                 Plugin.Logger.Debug("[BlurN] Found {0} items in movies library", libDict.Count);
 
             OMDBList items = new OMDBList();
-            if (config.Items.List.Count > 0)
-                items.List = config.Items.List;
-            else
-            {
-                string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
+            string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
 
-                if (_fileSystem.FileExists(dataPath))
-                    items.List = _json.DeserializeFromFile<List<OMDB>>(dataPath);
-            }
+            if (_fileSystem.FileExists(dataPath))
+                items.List = _json.DeserializeFromFile<List<OMDB>>(dataPath);
 
             if (inChannel && debug)
                 Plugin.Logger.Debug("[BlurN] Retrieved items");

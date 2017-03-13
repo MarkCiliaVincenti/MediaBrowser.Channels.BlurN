@@ -312,7 +312,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                             Variables = variables,
                             Date = DateTime.Now,
                             Level = NotificationLevel.Normal,
-                            //SendToUserMode = SendToUserType.All,
+                            SendToUserMode = SendToUserType.All,
                             NotificationType = "BlurNNewRelease"
                         }, cancellationToken).ConfigureAwait(false);
                     }
@@ -321,9 +321,6 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                         Plugin.Logger.Debug("[BlurN] Adding " + omdb.Title + " to the BlurN channel.");
                 }
             }
-
-            if (config.Items.List.Count > 0)
-                insertList.List.AddRange(config.Items.List);
 
             if (_fileSystem.FileExists(dataPath))
             {
@@ -350,7 +347,6 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             insertList.List = insertList.List.OrderByDescending(i => i.BluRayReleaseDate).ThenByDescending(i => i.ImdbRating).ThenByDescending(i => i.ImdbVotes).ThenByDescending(i => i.Metascore).ThenBy(i => i.Title).ToList();
 
             config.LastPublishDate = newPublishDate;
-            config.Items = new OMDBList();
             Plugin.Instance.SaveConfiguration();
 
             if (debug)

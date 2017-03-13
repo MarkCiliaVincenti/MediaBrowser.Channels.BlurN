@@ -14,14 +14,11 @@ namespace MediaBrowser.Channels.BlurN.Helpers
     {
         public static async Task ResetDatabase(Configuration.PluginConfiguration config, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem)
         {
-            config.Items = new OMDBList();
-            Plugin.Instance.SaveConfiguration();
-
             string dataPath = Path.Combine(appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
             string failedDataPath = Path.Combine(appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Failed.json");
 
             if (fileSystem.FileExists(dataPath))
-                json.SerializeToFile(config.Items.List, dataPath);
+                json.SerializeToFile((new OMDBList()).List, dataPath);
 
             if (fileSystem.FileExists(failedDataPath))
                 json.SerializeToFile((new FailedOMDBList()).List, failedDataPath);

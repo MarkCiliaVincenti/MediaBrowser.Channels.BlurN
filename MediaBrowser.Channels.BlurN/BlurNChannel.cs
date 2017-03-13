@@ -177,7 +177,7 @@ namespace MediaBrowser.Channels.BlurN
                 bool foundInLibrary = libDict.TryGetValue(omdb.ImdbId, out libraryItem);
                 if (foundInLibrary)
                 {
-                    if (libraryItem.IsPlayed(user))
+                    if (config.HidePlayedMovies && libraryItem.IsPlayed(user))
                     {
                         items.List.RemoveAt(i);
                         i--;
@@ -207,9 +207,9 @@ namespace MediaBrowser.Channels.BlurN
                     break;
                 case ChannelItemSortField.CommunityRating:
                     if (query.SortDescending)
-                        items.List.OrderByDescending(i => i.ImdbRating);
+                        items.List.OrderByDescending(i => i.ImdbRating).ThenByDescending(i => i.ImdbVotes);
                     else
-                        items.List.OrderBy(i => i.ImdbRating);
+                        items.List.OrderBy(i => i.ImdbRating).ThenBy(i => i.ImdbVotes);
                     break;
                 case ChannelItemSortField.PremiereDate:
                     if (query.SortDescending)

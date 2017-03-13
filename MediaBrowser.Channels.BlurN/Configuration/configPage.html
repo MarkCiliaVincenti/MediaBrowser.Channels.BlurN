@@ -35,6 +35,10 @@
                         <span>Add movies to BlurN even if they already exist in your Emby movie library (Default is checked)</span>
                     </label>
                     <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkHidePlayedMovies" />
+                        <span>Hide movies from BlurN when they existed in your Emby movie library and have been played (Default is checked)</span>
+                    </label>
+                    <label class="checkboxContainer">
                         <input is="emby-checkbox" type="checkbox" id="chkNotifications" />
                         <span>Enable notifications on new matching releases (Default is checked)</span>
                     </label>
@@ -91,6 +95,7 @@
                     $('#txtMinimumIMDBRating', page).val(config.MinimumIMDBRating || "");
                     $('#txtMinimumIMDBVotes', page).val(config.MinimumIMDBVotes || "");
                     $('#chkAddItemsAlreadyInLibrary', page).checked(config.AddItemsAlreadyInLibrary || false).checkboxradio("refresh");
+                    $('#chkHidePlayedMovies', page).checked(config.HidePlayedMovies || false).checkboxradio("refresh");
                     $('#chkNotifications', page).checked(config.EnableNewReleaseNotification || false).checkboxradio("refresh");
                     $('#chkDebugLogging', page).checked(config.EnableDebugLogging || false).checkboxradio("refresh");
                     Dashboard.hideLoadingMsg();
@@ -104,6 +109,7 @@
                     config.MinimumIMDBRating = $('#txtMinimumIMDBRating', form).val();
                     config.MinimumIMDBVotes = $('#txtMinimumIMDBVotes', form).val();
                     config.AddItemsAlreadyInLibrary = $('#chkAddItemsAlreadyInLibrary', form).checked();
+                    config.HidePlayedMovies = $('chkHidePlayedMovies', form).checked();
                     config.EnableDebugLogging = $('#chkDebugLogging', form).checked();
                     config.EnableNewReleaseNotification = $('#chkNotifications', form).checked();
                     ApiClient.updatePluginConfiguration(BlurNConfigurationPage.pluginUniqueId, config).then(Dashboard.processPluginConfigurationUpdateResult);

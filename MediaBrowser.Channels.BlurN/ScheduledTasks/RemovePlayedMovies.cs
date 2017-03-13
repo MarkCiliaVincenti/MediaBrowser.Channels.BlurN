@@ -80,85 +80,90 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             var config = Plugin.Instance.Configuration;
             bool debug = config.EnableDebugLogging;
 
-            IEnumerable<BaseItem> library;
-            Dictionary<string, BaseItem> libDict = new Dictionary<string, BaseItem>();
-
-            if (debug)
-                Plugin.Logger.Debug("[BlurN] User count is " + _userManager.Users.Count());
-
-            library = _libraryManager.GetItemList(new InternalItemsQuery() { HasImdbId = true, SourceTypes = new SourceType[] { SourceType.Library } });
-
-
-
-            if (debug)
-                Plugin.Logger.Debug("[BlurN] Library count is " + library.Count());
-
-            foreach (BaseItem libItem in library)
+            if (config.HidePlayedMovies)
             {
-                bool isPlayedByAll = true;
-                foreach (User user in _userManager.Users)
+                IEnumerable<BaseItem> library;
+                Dictionary<string, BaseItem> libDict = new Dictionary<string, BaseItem>();
+
+                if (debug)
+                    Plugin.Logger.Debug("[BlurN] User count is " + _userManager.Users.Count());
+
+                library = _libraryManager.GetItemList(new InternalItemsQuery() { HasImdbId = true, SourceTypes = new SourceType[] { SourceType.Library } });
+
+
+
+                if (debug)
+                    Plugin.Logger.Debug("[BlurN] Library count is " + library.Count());
+
+                foreach (BaseItem libItem in library)
                 {
-                    if (!libItem.IsPlayed(user))
+                    bool isPlayedByAll = true;
+                    foreach (User user in _userManager.Users)
                     {
-                        if (debug)
-                            Plugin.Logger.Debug("[BlurN] Movie " + libItem.OriginalTitle + " not played by user " + user.Name);
-
-                        isPlayedByAll = false;
-                        break;
-                    }
-                }
-
-                if (isPlayedByAll)
-                {
-                    if (debug)
-                        Plugin.Logger.Debug("[BlurN] Movie " + libItem.OriginalTitle + " played by all users");
-
-
-                    string libIMDbId = libItem.GetProviderId(MetadataProviders.Imdb);
-                    if (!libDict.ContainsKey(libIMDbId))
-                        libDict.Add(libIMDbId, libItem);
-                }
-            }
-
-            if (debug)
-                Plugin.Logger.Debug("[BlurN] Watched movie count is " + libDict.Count);
-
-            if (libDict.Count > 0)
-            {
-                string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
-
-                if (_fileSystem.FileExists(dataPath))
-                {
-                    var existingData = _json.DeserializeFromFile<List<OMDB>>(dataPath);
-
-                    if (existingData != null)
-                    {
-                        bool removedItems = false;
-                        for (int ci = 0; ci < existingData.Count; ci++)
-                        {
-                            OMDB channelItem = existingData[ci];
-                            BaseItem libraryItem = libDict.FirstOrDefault(i => i.Key == channelItem.ImdbId).Value;
-                            if (libraryItem != default(BaseItem))
-                            {
-                                existingData.RemoveAt(ci);
-                                ci--;
-                                removedItems = true;
-
-                                if (debug)
-                                    Plugin.Logger.Debug("[BlurN] Removing watched movie " + libraryItem.OriginalTitle + " from BlurN channel");
-                            }
-                        }
-
-                        if (removedItems)
+                        if (!libItem.IsPlayed(user))
                         {
                             if (debug)
-                                Plugin.Logger.Debug("[BlurN] Saving updated BlurN database");
+                                Plugin.Logger.Debug("[BlurN] Movie " + libItem.OriginalTitle + " not played by user " + user.Name);
 
-                            _json.SerializeToFile(existingData, dataPath);
+                            isPlayedByAll = false;
+                            break;
+                        }
+                    }
+
+                    if (isPlayedByAll)
+                    {
+                        if (debug)
+                            Plugin.Logger.Debug("[BlurN] Movie " + libItem.OriginalTitle + " played by all users");
+
+
+                        string libIMDbId = libItem.GetProviderId(MetadataProviders.Imdb);
+                        if (!libDict.ContainsKey(libIMDbId))
+                            libDict.Add(libIMDbId, libItem);
+                    }
+                }
+
+                if (debug)
+                    Plugin.Logger.Debug("[BlurN] Watched movie count is " + libDict.Count);
+
+                if (libDict.Count > 0)
+                {
+                    string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
+
+                    if (_fileSystem.FileExists(dataPath))
+                    {
+                        var existingData = _json.DeserializeFromFile<List<OMDB>>(dataPath);
+
+                        if (existingData != null)
+                        {
+                            bool removedItems = false;
+                            for (int ci = 0; ci < existingData.Count; ci++)
+                            {
+                                OMDB channelItem = existingData[ci];
+                                BaseItem libraryItem = libDict.FirstOrDefault(i => i.Key == channelItem.ImdbId).Value;
+                                if (libraryItem != default(BaseItem))
+                                {
+                                    existingData.RemoveAt(ci);
+                                    ci--;
+                                    removedItems = true;
+
+                                    if (debug)
+                                        Plugin.Logger.Debug("[BlurN] Removing watched movie " + libraryItem.OriginalTitle + " from BlurN channel");
+                                }
+                            }
+
+                            if (removedItems)
+                            {
+                                if (debug)
+                                    Plugin.Logger.Debug("[BlurN] Saving updated BlurN database");
+
+                                _json.SerializeToFile(existingData, dataPath);
+                            }
                         }
                     }
                 }
             }
+            else if (debug)
+                Plugin.Logger.Debug("[BlurN] Did not remove played movies due to configuration setting.");
 
             progress.Report(100);
             return;

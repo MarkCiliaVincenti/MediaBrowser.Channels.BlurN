@@ -14,6 +14,7 @@ namespace MediaBrowser.Channels.BlurN.Configuration
         public DateTime LastPublishDate { get; set; }
         public Boolean AddItemsAlreadyInLibrary { get; set; }
         public Boolean EnableNewReleaseNotification { get; set; }
+        public Boolean HidePlayedMovies { get; set; }
         public Boolean EnableDebugLogging { get; set; }
         public int ChannelRefreshCount { get; set; }
         public string InstallationID { get; set; }
@@ -27,6 +28,7 @@ namespace MediaBrowser.Channels.BlurN.Configuration
             LastPublishDate = DateTime.MinValue;
             AddItemsAlreadyInLibrary = true;
             EnableNewReleaseNotification = true;
+            HidePlayedMovies = true;
             EnableDebugLogging = false;
             InstallationID = Guid.NewGuid().ToString();
         }

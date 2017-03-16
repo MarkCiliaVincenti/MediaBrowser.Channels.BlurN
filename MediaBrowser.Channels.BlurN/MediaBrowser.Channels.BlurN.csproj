@@ -47,6 +47,7 @@
     <Compile Include="Helpers\OMDB.cs" />
     <Compile Include="Helpers\BlurNTasks.cs" />
     <Compile Include="Helpers\TMDb.cs" />
+    <Compile Include="Helpers\Tracking.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScheduledTasks\SyncPlayedStatusToLibrary.cs" />

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MediaBrowser.Common;
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -6,6 +7,11 @@ namespace MediaBrowser.Channels.BlurN.Helpers
 {
     class HTTP
     {
+        public static string EmbyUserAgent(IApplicationHost _appHost)
+        {
+            return "Emby/" + _appHost.ApplicationVersion;
+        }
+
         public static async Task<string> GetPage(string uri, string userAgent)
         {
             string result;

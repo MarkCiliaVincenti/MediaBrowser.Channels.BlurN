@@ -16,11 +16,15 @@ using MediaBrowser.Model.Serialization;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Model.IO;
 using System.IO;
+using MediaBrowser.Common;
+using MediaBrowser.Controller.Configuration;
 
 namespace MediaBrowser.Channels.BlurN
 {
     public class BlurNChannel : IChannel, IIndexableChannel, ISupportsLatestMedia, IHasCacheKey
     {
+        private readonly IApplicationHost _appHost;
+        private readonly IServerConfigurationManager _serverConfigurationManager;
         private readonly IJsonSerializer _json;
         private readonly IApplicationPaths _appPaths;
         private readonly IFileSystem _fileSystem;
@@ -29,8 +33,10 @@ namespace MediaBrowser.Channels.BlurN
         private readonly IUserDataManager _userDataManager;
         private readonly IMediaSourceManager _mediaSourceManager;
 
-        public BlurNChannel(IMediaSourceManager mediaSourceManager, IUserManager userManager, ILibraryManager libraryManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, IUserDataManager userDataManager)
+        public BlurNChannel(IApplicationHost appHost, IServerConfigurationManager serverConfigurationManager, IMediaSourceManager mediaSourceManager, IUserManager userManager, ILibraryManager libraryManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, IUserDataManager userDataManager)
         {
+            _appHost = appHost;
+            _serverConfigurationManager = serverConfigurationManager;
             _mediaSourceManager = mediaSourceManager;
             _json = json;
             _appPaths = appPaths;
@@ -131,7 +137,9 @@ namespace MediaBrowser.Channels.BlurN
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            Tracking.Track(_appHost, _serverConfigurationManager, "start", "viewchannel");
             return await GetItems(true, query, cancellationToken).ConfigureAwait(false);
+            Tracking.Track(_appHost, _serverConfigurationManager, "end", "viewchannel");
         }
 
         public async Task<ChannelItemResult> GetItems(bool inChannel, InternalChannelItemQuery query, CancellationToken cancellationToken)

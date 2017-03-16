@@ -11,11 +11,15 @@ using System.IO;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Common;
+using MediaBrowser.Controller.Configuration;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 {
     class SyncPlayedStatusToLibrary : IScheduledTask
     {
+        private readonly IApplicationHost _appHost;
+        private readonly IServerConfigurationManager _serverConfigurationManager;
         private readonly IJsonSerializer _json;
         private readonly IApplicationPaths _appPaths;
         private readonly IFileSystem _fileSystem;
@@ -23,8 +27,10 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         private readonly IUserManager _userManager;
         private readonly IUserDataManager _userDataManager;
 
-        public SyncPlayedStatusToLibrary(IUserManager userManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager, IUserDataManager userDataManager)
+        public SyncPlayedStatusToLibrary(IApplicationHost appHost, IServerConfigurationManager serverConfigurationManager, IUserManager userManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager, IUserDataManager userDataManager)
         {
+            _appHost = appHost;
+            _serverConfigurationManager = serverConfigurationManager;
             _json = json;
             _appPaths = appPaths;
             _fileSystem = fileSystem;
@@ -70,6 +76,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            Tracking.Track(_appHost, _serverConfigurationManager, "start", "syncplayed");
+
             var config = Plugin.Instance.Configuration;
             bool debug = config.EnableDebugLogging;
 
@@ -114,6 +122,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     progress.Report(((u + ((i + 1) / items.List.Count)) / users.Count) * 100);
                 }
             }
+
+            Tracking.Track(_appHost, _serverConfigurationManager, "end", "syncplayed");
 
             progress.Report(100);
             return;

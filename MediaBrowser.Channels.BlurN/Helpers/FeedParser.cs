@@ -78,7 +78,7 @@ namespace MediaBrowser.Channels.BlurN.Helpers
                               };
                 return entries.ToList();
             }
-            catch (Exception ex)
+            catch
             {
                 return new List<Item>();
             }

@@ -20,19 +20,25 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Querying;
 using MediaBrowser.Model.ApiClient;
 using MediaBrowser.Model.Dto;
+using MediaBrowser.Common;
+using MediaBrowser.Controller.Configuration;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 {
     class RemovePlayedMovies : IScheduledTask
     {
+        private readonly IApplicationHost _appHost;
+        private readonly IServerConfigurationManager _serverConfigurationManager;
         private readonly IJsonSerializer _json;
         private readonly IApplicationPaths _appPaths;
         private readonly IFileSystem _fileSystem;
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
 
-        public RemovePlayedMovies(IUserManager userManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager)
+        public RemovePlayedMovies(IApplicationHost appHost, IServerConfigurationManager serverConfigurationManager, IUserManager userManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager)
         {
+            _appHost = appHost;
+            _serverConfigurationManager = serverConfigurationManager;
             _userManager = userManager;
             _json = json;
             _appPaths = appPaths;
@@ -76,6 +82,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         public async Task Execute(CancellationToken cancellationToken, IProgress<double> progress)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            Tracking.Track(_appHost, _serverConfigurationManager, "start", "removeplayed");
 
             var config = Plugin.Instance.Configuration;
             bool debug = config.EnableDebugLogging;
@@ -164,6 +172,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             }
             else if (debug)
                 Plugin.Logger.Debug("[BlurN] Did not remove played movies due to configuration setting.");
+
+            Tracking.Track(_appHost, _serverConfigurationManager, "end", "removeplayed");
 
             progress.Report(100);
             return;

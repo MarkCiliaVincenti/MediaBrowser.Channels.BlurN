@@ -18,6 +18,7 @@ using MediaBrowser.Model.IO;
 using System.IO;
 using MediaBrowser.Common;
 using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Common.Net;
 
 namespace MediaBrowser.Channels.BlurN
 {
@@ -32,9 +33,11 @@ namespace MediaBrowser.Channels.BlurN
         private readonly IUserManager _userManager;
         private readonly IUserDataManager _userDataManager;
         private readonly IMediaSourceManager _mediaSourceManager;
+        private readonly IHttpClient _httpClient;
 
-        public BlurNChannel(IApplicationHost appHost, IServerConfigurationManager serverConfigurationManager, IMediaSourceManager mediaSourceManager, IUserManager userManager, ILibraryManager libraryManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, IUserDataManager userDataManager)
+        public BlurNChannel(IHttpClient httpClient, IApplicationHost appHost, IServerConfigurationManager serverConfigurationManager, IMediaSourceManager mediaSourceManager, IUserManager userManager, ILibraryManager libraryManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, IUserDataManager userDataManager)
         {
+            _httpClient = httpClient;
             _appHost = appHost;
             _serverConfigurationManager = serverConfigurationManager;
             _mediaSourceManager = mediaSourceManager;
@@ -137,9 +140,9 @@ namespace MediaBrowser.Channels.BlurN
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            Tracking.Track(_appHost, _serverConfigurationManager, "start", "viewchannel");
+            Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "start", "viewchannel", cancellationToken);
             return await GetItems(true, query, cancellationToken).ConfigureAwait(false);
-            Tracking.Track(_appHost, _serverConfigurationManager, "end", "viewchannel");
+            Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "end", "viewchannel", cancellationToken);
         }
 
         public async Task<ChannelItemResult> GetItems(bool inChannel, InternalChannelItemQuery query, CancellationToken cancellationToken)
@@ -160,11 +163,11 @@ namespace MediaBrowser.Channels.BlurN
             if (debug)
                 Plugin.Logger.Debug("[BlurN] Found {0} items in movies library", libDict.Count);
 
-            OMDBList items = new OMDBList();
+            BlurNItems items = new BlurNItems();
             string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
 
             if (_fileSystem.FileExists(dataPath))
-                items.List = _json.DeserializeFromFile<List<OMDB>>(dataPath);
+                items.List = _json.DeserializeFromFile<List<BlurNItem>>(dataPath);
 
             if (inChannel && debug)
                 Plugin.Logger.Debug("[BlurN] Retrieved items");
@@ -173,16 +176,16 @@ namespace MediaBrowser.Channels.BlurN
             {
                 if (inChannel && debug)
                     Plugin.Logger.Debug("[BlurN] Items is null, set to new list");
-                items = new OMDBList();
+                items = new BlurNItems();
                 Plugin.Instance.SaveConfiguration();
             }
 
             for (int i = 0; i < items.List.Count; i++)
             {
-                OMDB omdb = items.List[i];
+                BlurNItem blurNItem = items.List[i];
 
                 BaseItem libraryItem;
-                bool foundInLibrary = libDict.TryGetValue(omdb.ImdbId, out libraryItem);
+                bool foundInLibrary = libDict.TryGetValue(blurNItem.ImdbId, out libraryItem);
                 if (foundInLibrary)
                 {
                     if (config.HidePlayedMovies && libraryItem.IsPlayed(user))
@@ -190,11 +193,11 @@ namespace MediaBrowser.Channels.BlurN
                         items.List.RemoveAt(i);
                         i--;
                         if (inChannel && debug)
-                            Plugin.Logger.Debug("[BlurN] Hiding movie '{0}' from BlurN channel list as watched by user", omdb.Title);
+                            Plugin.Logger.Debug("[BlurN] Hiding movie '{0}' from BlurN channel list as watched by user", blurNItem.Title);
                     }
                     else
                     {
-                        omdb.LibraryItem = libraryItem;
+                        blurNItem.LibraryItem = libraryItem;
                     }
                 }
             }
@@ -237,7 +240,7 @@ namespace MediaBrowser.Channels.BlurN
                     break;
             }
 
-            OMDBList showList = new OMDBList();
+            BlurNItems showList = new BlurNItems();
             if (query.StartIndex.HasValue && query.Limit.HasValue && query.Limit.Value > 0)
             {
                 int index = query.StartIndex.Value;
@@ -261,14 +264,14 @@ namespace MediaBrowser.Channels.BlurN
 
             for (int i = 0; i < showList.List.Count; i++)
             {
-                OMDB omdb = showList.List[i];
+                BlurNItem blurNItem = showList.List[i];
 
                 if (inChannel && debug)
-                    Plugin.Logger.Debug("[BlurN] Showing movie '{0}' to BlurN channel list", omdb.Title);
+                    Plugin.Logger.Debug("[BlurN] Showing movie '{0}' to BlurN channel list", blurNItem.Title);
 
-                List<string> directors = (string.IsNullOrEmpty(omdb.Director)) ? new List<string>() : omdb.Director.Replace(", ", ",").Split(',').ToList();
-                List<string> writers = (string.IsNullOrEmpty(omdb.Writer)) ? new List<string>() : omdb.Writer.Replace(", ", ",").Split(',').ToList();
-                List<string> actors = (string.IsNullOrEmpty(omdb.Actors)) ? new List<string>() : omdb.Actors.Replace(", ", ",").Split(',').ToList();
+                List<string> directors = (string.IsNullOrEmpty(blurNItem.Director)) ? new List<string>() : blurNItem.Director.Replace(", ", ",").Split(',').ToList();
+                List<string> writers = (string.IsNullOrEmpty(blurNItem.Writer)) ? new List<string>() : blurNItem.Writer.Replace(", ", ",").Split(',').ToList();
+                List<string> actors = (string.IsNullOrEmpty(blurNItem.Actors)) ? new List<string>() : blurNItem.Actors.Replace(", ", ",").Split(',').ToList();
 
                 List<PersonInfo> people = new List<PersonInfo>();
                 foreach (string director in directors)
@@ -278,47 +281,47 @@ namespace MediaBrowser.Channels.BlurN
                 foreach (string actor in actors)
                     people.Add(new PersonInfo() { Name = actor, Role = "Actor" });
 
-                List<string> genres = (string.IsNullOrEmpty(omdb.Genre)) ? new List<string>() : omdb.Genre.Replace(", ", ",").Split(',').ToList();
+                List<string> genres = (string.IsNullOrEmpty(blurNItem.Genre)) ? new List<string>() : blurNItem.Genre.Replace(", ", ",").Split(',').ToList();
 
                 var cii = new ChannelItemInfo()
                 {
-                    Id = config.ChannelRefreshCount.ToString() + "-" + omdb.ImdbId,
+                    Id = config.ChannelRefreshCount.ToString() + "-" + blurNItem.ImdbId,
                     IndexNumber = i,
-                    CommunityRating = (float)omdb.ImdbRating,
+                    CommunityRating = (float)blurNItem.ImdbRating,
                     ContentType = ChannelMediaContentType.Movie,
-                    DateCreated = omdb.BluRayReleaseDate,
+                    DateCreated = blurNItem.BluRayReleaseDate,
                     Genres = genres,
-                    ImageUrl = (omdb.Poster == "N/A") ? null : omdb.Poster,
+                    ImageUrl = (blurNItem.Poster == "N/A") ? null : blurNItem.Poster,
                     MediaType = ChannelMediaType.Video,
-                    Name = omdb.Title,
-                    OfficialRating = (omdb.Rated == "N/A") ? null : omdb.Rated,
-                    Overview = (omdb.Plot == "N/A") ? null : omdb.Plot,
+                    Name = blurNItem.Title,
+                    OfficialRating = (blurNItem.Rated == "N/A") ? null : blurNItem.Rated,
+                    Overview = (blurNItem.Plot == "N/A") ? null : blurNItem.Plot,
                     People = people,
-                    PremiereDate = omdb.Released,
-                    ProductionYear = omdb.Released.Year,
-                    RunTimeTicks = (string.IsNullOrEmpty(omdb.Runtime) || (omdb.Runtime == "N/A")) ? null : (long?)TimeSpan.FromMinutes(Convert.ToInt32(omdb.Runtime.Split(' ')[0])).Ticks,
+                    PremiereDate = blurNItem.Released,
+                    ProductionYear = blurNItem.Released.Year,
+                    RunTimeTicks = (string.IsNullOrEmpty(blurNItem.Runtime) || (blurNItem.Runtime == "N/A")) ? null : (long?)TimeSpan.FromMinutes(Convert.ToInt32(blurNItem.Runtime.Split(' ')[0])).Ticks,
                     Type = ChannelItemType.Media,
                     IsInfiniteStream = false
                 };
 
-                cii.SetProviderId(MetadataProviders.Imdb, omdb.ImdbId);
-                if (omdb.TmdbId.HasValue)
-                    cii.SetProviderId(MetadataProviders.Tmdb, omdb.TmdbId.Value.ToString());
+                cii.SetProviderId(MetadataProviders.Imdb, blurNItem.ImdbId);
+                if (blurNItem.TmdbId.HasValue)
+                    cii.SetProviderId(MetadataProviders.Tmdb, blurNItem.TmdbId.Value.ToString());
 
-                if (omdb.LibraryItem != null)
+                if (blurNItem.LibraryItem != null)
                 {
-                    var mediaStreams = _mediaSourceManager.GetMediaStreams(omdb.LibraryItem.Id).ToList();
+                    var mediaStreams = _mediaSourceManager.GetMediaStreams(blurNItem.LibraryItem.Id).ToList();
 
                     var audioStream = mediaStreams.FirstOrDefault(ms => ms.Type == MediaStreamType.Audio && ms.IsDefault);
                     var videoStream = mediaStreams.FirstOrDefault(ms => ms.Type == MediaStreamType.Video && ms.IsDefault);
 
                     ChannelMediaInfo cmi = new ChannelMediaInfo()
                     {
-                        Path = _libraryManager.GetPathAfterNetworkSubstitution(omdb.LibraryItem.Path, omdb.LibraryItem),
-                        Container = omdb.LibraryItem.Container,
-                        RunTimeTicks = omdb.LibraryItem.RunTimeTicks,
+                        Path = _libraryManager.GetPathAfterNetworkSubstitution(blurNItem.LibraryItem.Path, blurNItem.LibraryItem),
+                        Container = blurNItem.LibraryItem.Container,
+                        RunTimeTicks = blurNItem.LibraryItem.RunTimeTicks,
                         SupportsDirectPlay = true,
-                        Id = omdb.LibraryItem.Id.ToString(),
+                        Id = blurNItem.LibraryItem.Id.ToString(),
                         Protocol = Model.MediaInfo.MediaProtocol.File
                     };
 
@@ -342,14 +345,14 @@ namespace MediaBrowser.Channels.BlurN
                         cmi.Width = videoStream.Width;
                     }
                     if (debug)
-                        Plugin.Logger.Debug("[BlurN] Linked movie {0} to library. Path: {1}, Substituted Path: {2}", omdb.Title, omdb.LibraryItem.Path, cmi.Path);
+                        Plugin.Logger.Debug("[BlurN] Linked movie {0} to library. Path: {1}, Substituted Path: {2}", blurNItem.Title, blurNItem.LibraryItem.Path, cmi.Path);
                     cii.MediaSources = new List<ChannelMediaInfo>() { cmi };
                 }
 
                 result.Items.Add(cii);
 
                 if (inChannel && debug)
-                    Plugin.Logger.Debug("[BlurN] Added movie '{0}' to BlurN channel list", omdb.Title);
+                    Plugin.Logger.Debug("[BlurN] Added movie '{0}' to BlurN channel list", blurNItem.Title);
             }
 
             if (inChannel && debug)

@@ -5,11 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Model.Tasks;
 using MediaBrowser.Channels.BlurN.Helpers;
-using MediaBrowser.Model.Notifications;
-using System.Xml.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text.RegularExpressions;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Common.Configuration;
 using System.IO;
@@ -17,11 +12,9 @@ using MediaBrowser.Model.IO;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Querying;
-using MediaBrowser.Model.ApiClient;
-using MediaBrowser.Model.Dto;
 using MediaBrowser.Common;
 using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Common.Net;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 {
@@ -34,9 +27,11 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         private readonly IFileSystem _fileSystem;
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
+        private readonly IHttpClient _httpClient;
 
-        public RemovePlayedMovies(IApplicationHost appHost, IServerConfigurationManager serverConfigurationManager, IUserManager userManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager)
+        public RemovePlayedMovies(IHttpClient httpClient, IApplicationHost appHost, IServerConfigurationManager serverConfigurationManager, IUserManager userManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager)
         {
+            _httpClient = httpClient;
             _appHost = appHost;
             _serverConfigurationManager = serverConfigurationManager;
             _userManager = userManager;
@@ -83,7 +78,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            Tracking.Track(_appHost, _serverConfigurationManager, "start", "removeplayed");
+            Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "start", "removeplayed", cancellationToken);
 
             var config = Plugin.Instance.Configuration;
             bool debug = config.EnableDebugLogging;
@@ -139,14 +134,14 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
                     if (_fileSystem.FileExists(dataPath))
                     {
-                        var existingData = _json.DeserializeFromFile<List<OMDB>>(dataPath);
+                        var existingData = _json.DeserializeFromFile<List<BlurNItem>>(dataPath);
 
                         if (existingData != null)
                         {
                             bool removedItems = false;
                             for (int ci = 0; ci < existingData.Count; ci++)
                             {
-                                OMDB channelItem = existingData[ci];
+                                BlurNItem channelItem = existingData[ci];
                                 BaseItem libraryItem = libDict.FirstOrDefault(i => i.Key == channelItem.ImdbId).Value;
                                 if (libraryItem != default(BaseItem))
                                 {
@@ -173,7 +168,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             else if (debug)
                 Plugin.Logger.Debug("[BlurN] Did not remove played movies due to configuration setting.");
 
-            Tracking.Track(_appHost, _serverConfigurationManager, "end", "removeplayed");
+            Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "end", "removeplayed", cancellationToken);
 
             progress.Report(100);
             return;

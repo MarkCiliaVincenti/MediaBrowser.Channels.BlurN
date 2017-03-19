@@ -44,7 +44,7 @@
     <Compile Include="Helpers\Item.cs" />
     <Compile Include="Helpers\BlurNNotificationType.cs" />
     <Compile Include="Helpers\Library.cs" />
-    <Compile Include="Helpers\OMDB.cs" />
+    <Compile Include="Helpers\BlurNItem.cs" />
     <Compile Include="Helpers\BlurNTasks.cs" />
     <Compile Include="Helpers\TMDb.cs" />
     <Compile Include="Helpers\Tracking.cs" />
@@ -55,29 +55,28 @@
     <Compile Include="ScheduledTasks\RefreshNewReleases.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="MediaBrowser.Common, Version=3.1.6222.28287, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\MediaBrowser.Common.3.0.694\lib\portable-net45+win8+wpa81\MediaBrowser.Common.dll</HintPath>
+    <EmbeddedResource Include="Configuration\configPage.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\thumb.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="MediaBrowser.Common, Version=3.2.7.4, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MediaBrowser.Common.3.0.697\lib\portable-net45+win8+wpa81\MediaBrowser.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="MediaBrowser.Controller, Version=3.1.6222.28285, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\MediaBrowser.Server.Core.3.0.694\lib\portable-net45+win8+wpa81\MediaBrowser.Controller.dll</HintPath>
+    <Reference Include="MediaBrowser.Controller, Version=3.2.7.4, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MediaBrowser.Server.Core.3.0.697\lib\portable-net45+win8+wpa81\MediaBrowser.Controller.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="MediaBrowser.Model, Version=3.1.6222.28286, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\MediaBrowser.Common.3.0.694\lib\portable-net45+win8+wpa81\MediaBrowser.Model.dll</HintPath>
+    <Reference Include="MediaBrowser.Model, Version=3.2.7.4, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MediaBrowser.Common.3.0.697\lib\portable-net45+win8+wpa81\MediaBrowser.Model.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Configuration\configPage.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Images\thumb.png" />
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(TargetPath)" "E:\emby.windows\plugins\" /y</PostBuildEvent>

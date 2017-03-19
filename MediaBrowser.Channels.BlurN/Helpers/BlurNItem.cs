@@ -1,15 +1,12 @@
 ﻿using MediaBrowser.Controller.Entities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace MediaBrowser.Channels.BlurN.Helpers
 {
-    [XmlType("FailedOMDB")]
-    public class FailedOMDB
+    [XmlType("FailedBlurNItem")]
+    public class FailedBlurNItem
     {
         [XmlElement("Title")]
         public string Title { get; set; }
@@ -17,16 +14,16 @@ namespace MediaBrowser.Channels.BlurN.Helpers
         [XmlElement("Year")]
         public int Year { get; set; }
 
-        public FailedOMDB()
+        public FailedBlurNItem()
         {
         }
     }
 
     /// <summary>
-    /// Represents an OMDB entry.
+    /// Represents a BlurNItem entry.
     /// </summary>
-    [XmlType("OMDB")]
-    public class OMDB
+    [XmlType("BlurNItem")]
+    public class BlurNItem
     {
         [XmlElement("BluRayReleaseDate")]
         public DateTime BluRayReleaseDate { get; set; }
@@ -93,27 +90,27 @@ namespace MediaBrowser.Channels.BlurN.Helpers
 
         public BaseItem LibraryItem { get; set; }
 
-        public OMDB()
+        public BlurNItem()
         {
         }
     }
 
-    [XmlRoot("BlurNOMDBList")]
-    [XmlInclude(typeof(OMDB))]
-    public class OMDBList
+    [XmlRoot("BlurNItems")]
+    [XmlInclude(typeof(BlurNItem))]
+    public class BlurNItems
     {
-        [XmlArray("BlurNOMDBArray")]
-        [XmlArrayItem("BlurNOMDBObject")]
-        public List<OMDB> List = new List<OMDB>();
+        [XmlArray("BlurNItemArray")]
+        [XmlArrayItem("BlurNItemObject")]
+        public List<BlurNItem> List = new List<BlurNItem>();
     }
 
-    [XmlRoot("BlurNFailedOMDBList")]
-    [XmlInclude(typeof(FailedOMDB))]
-    public class FailedOMDBList
+    [XmlRoot("FailedBlurNList")]
+    [XmlInclude(typeof(FailedBlurNItem))]
+    public class FailedBlurNList
     {
-        [XmlArray("BlurNFailedOMDBArray")]
-        [XmlArrayItem("BlurNFailedOMDBObject")]
-        public List<FailedOMDB> List = new List<FailedOMDB>();
+        [XmlArray("FailedBlurNItemArray")]
+        [XmlArrayItem("FailedBlurNItemObject")]
+        public List<FailedBlurNItem> List = new List<FailedBlurNItem>();
     }
 
 }

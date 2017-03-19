@@ -1,19 +1,17 @@
 ﻿using MediaBrowser.Channels.BlurN.ScheduledTasks;
 using MediaBrowser.Common;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace MediaBrowser.Channels.BlurN.Helpers
 {
     class Tracking
     {
-        public static async void Track(IApplicationHost _appHost, IServerConfigurationManager _serverConfigurationManager, string sessionControl, string task)
+        public static async void Track(IHttpClient _httpClient, IApplicationHost _appHost, IServerConfigurationManager _serverConfigurationManager, string sessionControl, string task, CancellationToken cancellationToken)
         {
             var config = Plugin.Instance.Configuration;
             if (string.IsNullOrEmpty(config.InstallationID))
@@ -24,11 +22,9 @@ namespace MediaBrowser.Channels.BlurN.Helpers
 
             try
             {
-                using (var client = new HttpClient())
-                {
-                    string version = typeof(RefreshNewReleases).GetTypeInfo().Assembly.GetName().Version.ToString();
+                string version = typeof(RefreshNewReleases).GetTypeInfo().Assembly.GetName().Version.ToString();
 
-                    var values = new Dictionary<string, string>
+                var values = new Dictionary<string, string>
                     {
                         { "v", "1" },
                         { "t", "event" },
@@ -47,9 +43,22 @@ namespace MediaBrowser.Channels.BlurN.Helpers
                         { "z", new Random().Next(1,2147483647).ToString() }
                     };
 
-                    var content = new FormUrlEncodedContent(values);
-                    var response = await client.PostAsync("https://www.google-analytics.com/collect", content);
-                    var responseString = await response.Content.ReadAsStringAsync();
+                var options = new HttpRequestOptions
+                {
+                    Url = "https://www.google-analytics.com/collect",
+                    CancellationToken = cancellationToken,
+                    LogRequest = false,
+                    LogErrors = false,
+                    BufferContent = false,
+                    LogErrorResponseBody = false,
+                    UserAgent = HTTP.EmbyUserAgent(_appHost),
+                };
+
+                options.SetPostData(values);
+
+                using (var response = await _httpClient.SendAsync(options, "POST").ConfigureAwait(false))
+                {
+
                 }
             }
             catch (Exception ex)

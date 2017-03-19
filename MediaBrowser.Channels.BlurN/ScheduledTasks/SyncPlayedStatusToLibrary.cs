@@ -13,6 +13,7 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Common;
 using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Common.Net;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 {
@@ -26,9 +27,11 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
         private readonly IUserDataManager _userDataManager;
+        private readonly IHttpClient _httpClient;
 
-        public SyncPlayedStatusToLibrary(IApplicationHost appHost, IServerConfigurationManager serverConfigurationManager, IUserManager userManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager, IUserDataManager userDataManager)
+        public SyncPlayedStatusToLibrary(IHttpClient httpClient, IApplicationHost appHost, IServerConfigurationManager serverConfigurationManager, IUserManager userManager, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager, IUserDataManager userDataManager)
         {
+            _httpClient = httpClient;
             _appHost = appHost;
             _serverConfigurationManager = serverConfigurationManager;
             _json = json;
@@ -76,17 +79,17 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            Tracking.Track(_appHost, _serverConfigurationManager, "start", "syncplayed");
+            Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "start", "syncplayed", cancellationToken);
 
             var config = Plugin.Instance.Configuration;
             bool debug = config.EnableDebugLogging;
 
-            OMDBList items = new OMDBList();
+            BlurNItems items = new BlurNItems();
 
             string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
 
             if (_fileSystem.FileExists(dataPath))
-                items.List = _json.DeserializeFromFile<List<OMDB>>(dataPath);
+                items.List = _json.DeserializeFromFile<List<BlurNItem>>(dataPath);
 
             var users = _userManager.Users.ToList();
 
@@ -103,18 +106,18 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
                 for (int i = 0; i < items.List.Count; i++)
                 {
-                    OMDB omdb = items.List[i];
+                    BlurNItem blurNItem = items.List[i];
                     BaseItem libraryItem;
-                    if (libDict.TryGetValue(omdb.ImdbId, out libraryItem))
+                    if (libDict.TryGetValue(blurNItem.ImdbId, out libraryItem))
                     {
-                        UserItemData uid = _userDataManager.GetAllUserData(user.Id).FirstOrDefault(aud => aud.Key == config.ChannelRefreshCount + "-" + omdb.ImdbId);
+                        UserItemData uid = _userDataManager.GetAllUserData(user.Id).FirstOrDefault(aud => aud.Key == config.ChannelRefreshCount + "-" + blurNItem.ImdbId);
                         if (uid != default(UserItemData))
                         {
                             if (uid.Played)
                             {
                                 await libraryItem.MarkPlayed(user, uid.LastPlayedDate, true).ConfigureAwait(false);
                                 if (debug)
-                                    Plugin.Logger.Debug("[BlurN] Marked {0} as watched in movie library.", omdb.Title);
+                                    Plugin.Logger.Debug("[BlurN] Marked {0} as watched in movie library.", blurNItem.Title);
                             }
                         }
                     }
@@ -123,7 +126,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 }
             }
 
-            Tracking.Track(_appHost, _serverConfigurationManager, "end", "syncplayed");
+            Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "end", "syncplayed", cancellationToken);
 
             progress.Report(100);
             return;

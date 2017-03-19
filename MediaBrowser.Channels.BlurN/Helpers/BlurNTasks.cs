@@ -18,10 +18,10 @@ namespace MediaBrowser.Channels.BlurN.Helpers
             string failedDataPath = Path.Combine(appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Failed.json");
 
             if (fileSystem.FileExists(dataPath))
-                json.SerializeToFile((new OMDBList()).List, dataPath);
+                json.SerializeToFile((new BlurNItems()).List, dataPath);
 
             if (fileSystem.FileExists(failedDataPath))
-                json.SerializeToFile((new FailedOMDBList()).List, failedDataPath);
+                json.SerializeToFile((new FailedBlurNList()).List, failedDataPath);
 
             if (config.EnableDebugLogging)
                 Plugin.Logger.Debug("[BlurN] Database reset actualized.");

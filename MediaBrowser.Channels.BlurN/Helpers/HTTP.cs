@@ -12,6 +12,7 @@ namespace MediaBrowser.Channels.BlurN.Helpers
             return "Emby/" + _appHost.ApplicationVersion;
         }
 
+        [Obsolete]
         public static async Task<string> GetPage(string uri, string userAgent)
         {
             string result;

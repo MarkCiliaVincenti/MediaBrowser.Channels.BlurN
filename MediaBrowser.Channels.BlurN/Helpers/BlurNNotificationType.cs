@@ -10,23 +10,24 @@ namespace MediaBrowser.Channels.BlurN.Helpers
 {
     class BlurNNotificationType : INotificationTypeFactory
     {
+        public const string NewRelease = "BlurNNewRelease";
+
         public IEnumerable<NotificationTypeInfo> GetNotificationTypes()
         {
-            var knownTypes = new List<NotificationTypeInfo>()
+            return new List<NotificationTypeInfo>()
             {
                 new NotificationTypeInfo()
                 {
                     Category = "BlurN",
-                    DefaultDescription = "Year: {Year}, IMDb Rating: {IMDbRating}",
+                    DefaultDescription = "Year: {Year}, IMDb Rating: {IMDbRating} ({IMDbVotes} votes)",
                     DefaultTitle = "[BlurN] New movie released: {Title}",
                     Enabled = true,
                     IsBasedOnUserEvent = false,
                     Name = "New release notification",
-                    Type = "BlurNNewRelease",
-                    Variables = new List<string> {"Title", "Year", "IMDbRating" }
+                    Type = NewRelease,
+                    Variables = new List<string> {"Title", "Year", "IMDbRating", "IMDbVotes" }
                 }
             };
-            return knownTypes;
         }
     }
 }

@@ -136,6 +136,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                             Poster = entry.Attribute("poster").Value,
                             Rated = entry.Attribute("rated").Value,
                             Runtime = entry.Attribute("runtime").Value,
+                            RuntimeTicks = BlurNItem.ConvertRuntimeToTicks(entry.Attribute("runtime").Value),
                             Type = entry.Attribute("type").Value,
                             Writer = entry.Attribute("writer").Value,
                             Title = entry.Attribute("title").Value,
@@ -227,15 +228,11 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 }
 
                 string url;
-                if (year > 0)
-                    url = baseOmdbApiUri + "/?t=" + WebUtility.UrlEncode(item.Title) + "&y=" + year.ToString() + "&plot=short&r=xml";
-                else
-                    url = baseOmdbApiUri + "/?t=" + WebUtility.UrlEncode(item.Title) + "&plot=short&r=xml";
-
+                url = BuildOMDbApiUrl(item, year, false);
                 BlurNItem blurNItem = await ParseOMDB(url, item.PublishDate, cancellationToken).ConfigureAwait(false);
                 if (blurNItem != null && string.IsNullOrEmpty(blurNItem.ImdbId) && (item.Title.EndsWith(" 3D") || item.Title.EndsWith(" 4K")) && year > 0)
                 {
-                    url = baseOmdbApiUri + "/?t=" + WebUtility.UrlEncode(item.Title.Remove(item.Title.Length - 3)) + "&y=" + year.ToString() + "&plot=short&r=xml";
+                    url = BuildOMDbApiUrl(item, year, true);
                     blurNItem = await ParseOMDB(url, item.PublishDate, cancellationToken).ConfigureAwait(false);
                 }
 
@@ -257,21 +254,20 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
                     insertList.List.Add(blurNItem);
 
-                    if (config.EnableNewReleaseNotification)
+                    var variables = new Dictionary<string, string>();
+                    variables.Add("Title", blurNItem.Title);
+                    variables.Add("Year", blurNItem.Year.ToString());
+                    variables.Add("IMDbRating", blurNItem.ImdbRating.ToString());
+                    variables.Add("IMDbVotes", blurNItem.ImdbVotes.ToString("#,##0"));
+
+                    await Plugin.NotificationManager.SendNotification(new NotificationRequest()
                     {
-                        var variables = new Dictionary<string, string>();
-                        variables.Add("Title", blurNItem.Title);
-                        variables.Add("Year", blurNItem.Year.ToString());
-                        variables.Add("IMDbRating", blurNItem.ImdbRating.ToString());
-                        await Plugin.NotificationManager.SendNotification(new NotificationRequest()
-                        {
-                            Variables = variables,
-                            Date = DateTime.Now,
-                            Level = NotificationLevel.Normal,
-                            //SendToUserMode = SendToUserType.All,
-                            NotificationType = "BlurNNewRelease"
-                        }, cancellationToken).ConfigureAwait(false);
-                    }
+                        Variables = variables,
+                        Date = DateTime.Now,
+                        Level = NotificationLevel.Normal,
+                        NotificationType = BlurNNotificationType.NewRelease,
+                        Url = "http://www.imdb.com/title/" + blurNItem.ImdbId + "/"
+                    }, cancellationToken).ConfigureAwait(false);
 
                     if (debug)
                         Plugin.Logger.Debug("[BlurN] Adding " + blurNItem.Title + " to the BlurN channel.");
@@ -318,6 +314,14 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             progress.Report(100);
             return;
+        }
+
+        private static string BuildOMDbApiUrl(Item item, int year, bool removeLast3Chars)
+        {
+            return baseOmdbApiUri + "/?t=" +
+                ((removeLast3Chars) ? WebUtility.UrlEncode(item.Title.Remove(item.Title.Length - 3)) : WebUtility.UrlEncode(item.Title)) +
+                ((year > 0) ? "&y=" + year.ToString() : "") +
+                "&plot=short&r=xml";
         }
 
         private void ConvertPostersFromW640ToOriginal(Configuration.PluginConfiguration config, string dataPath)

@@ -230,9 +230,9 @@ namespace MediaBrowser.Channels.BlurN
                     break;
                 case ChannelItemSortField.Runtime:
                     if (query.SortDescending)
-                        items.List.OrderByDescending(i => (string.IsNullOrEmpty(i.Runtime) || (i.Runtime == "N/A")) ? null : (long?)TimeSpan.FromMinutes(Convert.ToInt32(i.Runtime.Split(' ')[0])).Ticks);
+                        items.List.OrderByDescending(i => i.RuntimeTicks);
                     else
-                        items.List.OrderBy(i => (string.IsNullOrEmpty(i.Runtime) || (i.Runtime == "N/A")) ? null : (long?)TimeSpan.FromMinutes(Convert.ToInt32(i.Runtime.Split(' ')[0])).Ticks);
+                        items.List.OrderBy(i => i.RuntimeTicks);
                     break;
                 default:
                     if (query.SortDescending)
@@ -299,7 +299,7 @@ namespace MediaBrowser.Channels.BlurN
                     People = people,
                     PremiereDate = blurNItem.Released,
                     ProductionYear = blurNItem.Released.Year,
-                    RunTimeTicks = (string.IsNullOrEmpty(blurNItem.Runtime) || (blurNItem.Runtime == "N/A")) ? null : (long?)TimeSpan.FromMinutes(Convert.ToInt32(blurNItem.Runtime.Split(' ')[0])).Ticks,
+                    RunTimeTicks = blurNItem.RuntimeTicks,
                     Type = ChannelItemType.Media,
                     IsInfiniteStream = false
                 };

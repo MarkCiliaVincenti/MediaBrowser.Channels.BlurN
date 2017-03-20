@@ -43,6 +43,33 @@ namespace MediaBrowser.Channels.BlurN.Helpers
         [XmlElement("Runtime")]
         public string Runtime { get; set; }
 
+        [XmlElement("RuntimeTicks")]
+        private long? _runTimeTicks;
+        public long? RuntimeTicks
+        {
+            get
+            {
+                if (_runTimeTicks.HasValue)
+                    return _runTimeTicks;
+                RuntimeTicks = ConvertRuntimeToTicks(Runtime);
+                return _runTimeTicks;
+            }
+            set
+            {
+                _runTimeTicks = value;
+            }
+        }
+
+        public static long? ConvertRuntimeToTicks(string runTime)
+        {
+            if (string.IsNullOrEmpty(runTime) || (runTime == "N/A"))
+                return null;
+            int mins;
+            if (Int32.TryParse(runTime.Split(' ')[0], out mins))
+                return TimeSpan.FromMinutes(mins).Ticks;
+            return null;
+        }
+
         [XmlElement("Genre")]
         public string Genre { get; set; }
 

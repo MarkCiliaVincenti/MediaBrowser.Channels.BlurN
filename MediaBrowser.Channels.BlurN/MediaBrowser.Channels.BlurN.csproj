@@ -40,7 +40,6 @@
     <Compile Include="BlurNChannel.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="Helpers\FeedParser.cs" />
-    <Compile Include="Helpers\HTTP.cs" />
     <Compile Include="Helpers\Item.cs" />
     <Compile Include="Helpers\BlurNNotificationType.cs" />
     <Compile Include="Helpers\Library.cs" />

@@ -37,7 +37,6 @@ namespace MediaBrowser.Channels.BlurN.Helpers
                         { "aid", "MediaBrowser.Channels.BlurN" },
                         { "av", version },
                         { "ds", "app" },
-                        { "ua", HTTP.EmbyUserAgent(_appHost) },
                         { "sc", sessionControl },
                         { "ul", _serverConfigurationManager.Configuration.UICulture.ToLower() },
                         { "z", new Random().Next(1,2147483647).ToString() }
@@ -51,7 +50,7 @@ namespace MediaBrowser.Channels.BlurN.Helpers
                     LogErrors = false,
                     BufferContent = false,
                     LogErrorResponseBody = false,
-                    UserAgent = HTTP.EmbyUserAgent(_appHost),
+                    EnableDefaultUserAgent = true
                 };
 
                 options.SetPostData(values);

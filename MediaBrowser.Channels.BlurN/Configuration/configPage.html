@@ -39,19 +39,22 @@
                         <span>Hide movies from BlurN when they existed in your Emby movie library and have been played (Default is checked)</span>
                     </label>
                     <label class="checkboxContainer">
-                        <input is="emby-checkbox" type="checkbox" id="chkNotifications" />
-                        <span>Enable notifications on new matching releases (Default is checked)</span>
-                    </label>
-                    <label class="checkboxContainer">
                         <input is="emby-checkbox" type="checkbox" id="chkDebugLogging" />
                         <span>Enable BlurN debug logging (Default is unchecked)</span>
                     </label>
+
+                    <p>Notifications for new matched releases are enabled/disabled from the <a href="notificationsettings.html">notifications page</a>.</p>
 
                     <p>Like my plugin? Buy me a drink!</p>
                     <p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RHMS9UKYKSMM8" target="_blank"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" /></a></p>
 
                     <p><b>Note:</b> This plugin is anonymously tracking its usage purely for statistical purposes.</p>
 
+                    <div>
+                        <button is="emby-button" type="button" class="raised button-cancel block" id="notificationSettings">
+                            <span>Change BlurN notification settings</span>
+                        </button>
+                    </div>
                     <div>
                         <button is="emby-button" type="button" class="raised button-cancel block" id="resetDatabase">
                             <span>Reset BlurN database</span>
@@ -61,8 +64,6 @@
                     <div>
                         <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
                     </div>
-
-
                 </form>
             </div>
         </div>
@@ -85,6 +86,11 @@
                 $('#resetDatabase', page).on('click', function (event) {
                     resetDatabase(page, this.getAttribute('data-id'));
                 });
+                $('#notificationSettings', page).on('click', function (event) {
+                    Dashboard.showLoadingMsg();
+                    Dashboard.navigate('notificationsetting.html?type=BlurNNewRelease');
+                    Dashboard.hideLoadingMsg();
+                });
             });
             $('.BlurNConfigurationPage').on('pageshow', function (event) {
                 Dashboard.showLoadingMsg();
@@ -96,7 +102,6 @@
                     $('#txtMinimumIMDBVotes', page).val(config.MinimumIMDBVotes || "");
                     $('#chkAddItemsAlreadyInLibrary', page).checked(config.AddItemsAlreadyInLibrary || false).checkboxradio("refresh");
                     $('#chkHidePlayedMovies', page).checked(config.HidePlayedMovies || false).checkboxradio("refresh");
-                    $('#chkNotifications', page).checked(config.EnableNewReleaseNotification || false).checkboxradio("refresh");
                     $('#chkDebugLogging', page).checked(config.EnableDebugLogging || false).checkboxradio("refresh");
                     Dashboard.hideLoadingMsg();
                 });
@@ -111,7 +116,6 @@
                     config.AddItemsAlreadyInLibrary = $('#chkAddItemsAlreadyInLibrary', form).checked();
                     config.HidePlayedMovies = $('chkHidePlayedMovies', form).checked();
                     config.EnableDebugLogging = $('#chkDebugLogging', form).checked();
-                    config.EnableNewReleaseNotification = $('#chkNotifications', form).checked();
                     ApiClient.updatePluginConfiguration(BlurNConfigurationPage.pluginUniqueId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                 });
                 // Disable default form submission

@@ -321,7 +321,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             return baseOmdbApiUri + "/?t=" +
                 ((removeLast3Chars) ? WebUtility.UrlEncode(item.Title.Remove(item.Title.Length - 3)) : WebUtility.UrlEncode(item.Title)) +
                 ((year > 0) ? "&y=" + year.ToString() : "") +
-                "&plot=short&r=xml";
+                "&plot=short&r=xml&apikey=82e83907";
         }
 
         private void ConvertPostersFromW640ToOriginal(Configuration.PluginConfiguration config, string dataPath)

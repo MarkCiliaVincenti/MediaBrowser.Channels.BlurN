@@ -42,14 +42,97 @@
                         <input is="emby-checkbox" type="checkbox" id="chkDebugLogging" />
                         <span>Enable BlurN debug logging (Default is unchecked)</span>
                     </label>
-
+                    <div>
+                        <h3 class="checkboxListLabel">Genre whitelist:</h3>
+                        <div class="checkboxList paperList checkboxList-paperList">
+                            <div class="fieldDescription">By design, the whitelist matches with the first movie genre. By default all genres are checked. Uncheck the genres you don't want listed.</div>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkAction" />
+                                <span>Action</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkAdventure" />
+                                <span>Adventure</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkAnimation" />
+                                <span>Animation</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkBiography" />
+                                <span>Biography</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkComedy" />
+                                <span>Comedy</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkCrime" />
+                                <span>Crime</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkDrama" />
+                                <span>Drama</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkFamily" />
+                                <span>Family</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkFantasy" />
+                                <span>Fantasy</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkFilmNoir" />
+                                <span>Film-Noir</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkHistory" />
+                                <span>History</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkHorror" />
+                                <span>Horror</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkMusic" />
+                                <span>Music</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkMusical" />
+                                <span>Musical</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkMystery" />
+                                <span>Mystery</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkRomance" />
+                                <span>Romance</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkSciFi" />
+                                <span>Sci-Fi</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkSport" />
+                                <span>Sport</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkThriller" />
+                                <span>Thriller</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkWar" />
+                                <span>War</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" is="emby-checkbox" id="chkWestern" />
+                                <span>Western</span>
+                            </label>
+                        </div>
+                    </div>
                     <p>Notifications for new matched releases are enabled/disabled from the <a href="notificationsettings.html">notifications page</a>.</p>
-
-                    <p>Like my plugin? Buy me a drink!</p>
-                    <p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RHMS9UKYKSMM8" target="_blank"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" /></a></p>
-
-                    <p><b>Note:</b> This plugin is anonymously tracking its usage purely for statistical purposes.</p>
-
                     <div>
                         <button is="emby-button" type="button" class="raised button-cancel block" id="notificationSettings">
                             <span>Change BlurN notification settings</span>
@@ -64,14 +147,16 @@
                     <div>
                         <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
                     </div>
+                    <p><b>Note:</b> This plugin is anonymously tracking its usage purely for statistical purposes.</p>
+                    <p>Like my plugin? Buy me a drink!</p>
+                    <p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RHMS9UKYKSMM8" target="_blank"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" /></a></p>
                 </form>
             </div>
         </div>
 
 
         <script type="text/javascript">
-            function showLastPublishedDate(page, date)
-            {
+            function showLastPublishedDate(page, date) {
                 var d = new Date(date);
                 function pad(n) { return n < 10 ? '0' + n : n }
                 $('#txtLastPublishDate', page).val(d.getUTCFullYear() + '-'
@@ -103,6 +188,27 @@
                     $('#chkAddItemsAlreadyInLibrary', page).checked(config.AddItemsAlreadyInLibrary || false).checkboxradio("refresh");
                     $('#chkHidePlayedMovies', page).checked(config.HidePlayedMovies || false).checkboxradio("refresh");
                     $('#chkDebugLogging', page).checked(config.EnableDebugLogging || false).checkboxradio("refresh");
+                    $('#chkAction', page).checked(config.Action || false).checkboxradio("refresh");
+                    $('#chkAdventure', page).checked(config.Adventure || false).checkboxradio("refresh");
+                    $('#chkAnimation', page).checked(config.Animation || false).checkboxradio("refresh");
+                    $('#chkBiography', page).checked(config.Biography || false).checkboxradio("refresh");
+                    $('#chkComedy', page).checked(config.Comedy || false).checkboxradio("refresh");
+                    $('#chkCrime', page).checked(config.Crime || false).checkboxradio("refresh");
+                    $('#chkDrama', page).checked(config.Drama || false).checkboxradio("refresh");
+                    $('#chkFamily', page).checked(config.Family || false).checkboxradio("refresh");
+                    $('#chkFantasy', page).checked(config.Fantasy || false).checkboxradio("refresh");
+                    $('#chkFilmNoir', page).checked(config.FilmNoir || false).checkboxradio("refresh");
+                    $('#chkHistory', page).checked(config.History || false).checkboxradio("refresh");
+                    $('#chkHorror', page).checked(config.Horror || false).checkboxradio("refresh");
+                    $('#chkMusic', page).checked(config.Music || false).checkboxradio("refresh");
+                    $('#chkMusical', page).checked(config.Musical || false).checkboxradio("refresh");
+                    $('#chkMystery', page).checked(config.Mystery || false).checkboxradio("refresh");
+                    $('#chkRomance', page).checked(config.Romance || false).checkboxradio("refresh");
+                    $('#chkSciFi', page).checked(config.SciFi || false).checkboxradio("refresh");
+                    $('#chkSport', page).checked(config.Sport || false).checkboxradio("refresh");
+                    $('#chkThriller', page).checked(config.Thriller || false).checkboxradio("refresh");
+                    $('#chkWar', page).checked(config.War || false).checkboxradio("refresh");
+                    $('#chkWestern', page).checked(config.Western || false).checkboxradio("refresh");
                     Dashboard.hideLoadingMsg();
                 });
             });
@@ -116,6 +222,27 @@
                     config.AddItemsAlreadyInLibrary = $('#chkAddItemsAlreadyInLibrary', form).checked();
                     config.HidePlayedMovies = $('chkHidePlayedMovies', form).checked();
                     config.EnableDebugLogging = $('#chkDebugLogging', form).checked();
+                    config.Action = $('#chkAction', form).checked();
+                    config.Adventure = $('#chkAdventure', form).checked();
+                    config.Animation = $('#chkAnimation', form).checked();
+                    config.Biography = $('#chkBiography', form).checked();
+                    config.Comedy = $('#chkComedy', form).checked();
+                    config.Crime = $('#chkCrime', form).checked();
+                    config.Drama = $('#chkDrama', form).checked();
+                    config.Family = $('#chkFamily', form).checked();
+                    config.Fantasy = $('#chkFantasy', form).checked();
+                    config.FilmNoir = $('#chkFilmNoir', form).checked();
+                    config.History = $('#chkHistory', form).checked();
+                    config.Horror = $('#chkHorror', form).checked();
+                    config.Music = $('#chkMusic', form).checked();
+                    config.Musical = $('#chkMusical', form).checked();
+                    config.Mystery = $('#chkMystery', form).checked();
+                    config.Romance = $('#chkRomance', form).checked();
+                    config.SciFi = $('#chkSciFi', form).checked();
+                    config.Sport = $('#chkSport', form).checked();
+                    config.Thriller = $('#chkThriller', form).checked();
+                    config.War = $('#chkWar', form).checked();
+                    config.Western = $('#chkWestern', form).checked();
                     ApiClient.updatePluginConfiguration(BlurNConfigurationPage.pluginUniqueId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                 });
                 // Disable default form submission
@@ -127,7 +254,7 @@
                         Dashboard.showLoadingMsg();
                         ApiClient.getPluginConfiguration(BlurNConfigurationPage.pluginUniqueId).then(function (config) {
                             config.LastPublishDate = new Date('2017-01-01T00:00:00.0000000Z');
-                            
+
                             ApiClient.updatePluginConfiguration(BlurNConfigurationPage.pluginUniqueId, config).then(function () {
                                 showLastPublishedDate(page, config.LastPublishDate);
                                 Dashboard.processPluginConfigurationUpdateResult;

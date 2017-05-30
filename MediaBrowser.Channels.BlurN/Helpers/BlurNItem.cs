@@ -73,6 +73,11 @@ namespace MediaBrowser.Channels.BlurN.Helpers
         [XmlElement("Genre")]
         public string Genre { get; set; }
 
+        public string FirstGenre
+        {
+            get { return Genre.Split(',')[0]; }
+        }
+
         [XmlElement("Director")]
         public string Director { get; set; }
 

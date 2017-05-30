@@ -205,6 +205,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             if (debug)
                 Plugin.Logger.Debug("[BlurN] Checking " + finalItems.Count + " new items");
 
+            var genreExcludeList = GetGenreExcludeList(config);
+
             for (int i = 0; i < finalItems.Count(); i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -248,7 +250,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     if (debug)
                         Plugin.Logger.Debug("[BlurN] " + blurNItem.ImdbId + " is already in the library, skipped.");
                 }
-                else if (blurNItem.Type == "movie" && blurNItem.ImdbRating >= config.MinimumIMDBRating && blurNItem.ImdbVotes >= config.MinimumIMDBVotes && blurNItem.Released > minAge)
+                else if (blurNItem.Type == "movie" && !genreExcludeList.Contains(blurNItem.FirstGenre) && blurNItem.ImdbRating >= config.MinimumIMDBRating && blurNItem.ImdbVotes >= config.MinimumIMDBVotes && blurNItem.Released > minAge)
                 {
                     await UpdateContentWithTmdbData(cancellationToken, blurNItem).ConfigureAwait(false);
 
@@ -314,6 +316,33 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             progress.Report(100);
             return;
+        }
+
+        private static List<string> GetGenreExcludeList(Configuration.PluginConfiguration config)
+        {
+            var excludedList = new List<string>();
+            if (!config.Action) { excludedList.Add("Action"); }
+            if (!config.Adventure) { excludedList.Add("Adventure"); }
+            if (!config.Animation) { excludedList.Add("Animation"); }
+            if (!config.Biography) { excludedList.Add("Biography"); }
+            if (!config.Comedy) { excludedList.Add("Comedy"); }
+            if (!config.Crime) { excludedList.Add("Crime"); }
+            if (!config.Drama) { excludedList.Add("Drama"); }
+            if (!config.Family) { excludedList.Add("Family"); }
+            if (!config.Fantasy) { excludedList.Add("Fantasy"); }
+            if (!config.FilmNoir) { excludedList.Add("Film-Noir"); }
+            if (!config.History) { excludedList.Add("History"); }
+            if (!config.Horror) { excludedList.Add("Horror"); }
+            if (!config.Music) { excludedList.Add("Music"); }
+            if (!config.Musical) { excludedList.Add("Musical"); }
+            if (!config.Mystery) { excludedList.Add("Mystery"); }
+            if (!config.Romance) { excludedList.Add("Romance"); }
+            if (!config.SciFi) { excludedList.Add("Sci-Fi"); }
+            if (!config.Sport) { excludedList.Add("Sport"); }
+            if (!config.Thriller) { excludedList.Add("Thriller"); }
+            if (!config.War) { excludedList.Add("War"); }
+            if (!config.Western) { excludedList.Add("Western"); }
+            return excludedList;
         }
 
         private static string BuildOMDbApiUrl(Item item, int year, bool removeLast3Chars)

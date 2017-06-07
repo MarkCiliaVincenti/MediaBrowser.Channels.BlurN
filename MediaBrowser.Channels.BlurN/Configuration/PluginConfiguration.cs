@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Reflection;
 using MediaBrowser.Model.Plugins;
+using System.Threading;
+using System.Threading.Tasks;
+using System.IO;
+using System.Net.Http;
 
 namespace MediaBrowser.Channels.BlurN.Configuration
 {
@@ -37,6 +41,23 @@ namespace MediaBrowser.Channels.BlurN.Configuration
         public bool War { get; set; }
         public bool Western { get; set; }
         public string BlurNVersion { get { return typeof(PluginConfiguration).GetTypeInfo().Assembly.GetName().Version.ToString(); } }
+        public string BlurNLatestVersion { get { return GetLatestVersion().Result; } }
+
+        private async Task<string> GetLatestVersion()
+        {
+            try
+            {
+                using (var _httpClient = new HttpClient())
+                {
+                using (var response = await _httpClient.GetAsync("https://raw.githubusercontent.com/MarkCiliaVincenti/MediaBrowser.Channels.BlurN/master/MediaBrowser.Channels.BlurN/latestversion.txt", CancellationToken.None).ConfigureAwait(false))
+                    return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                }
+            }
+            catch
+            {
+                return "could not be retrieved";
+            }
+        }
 
         public PluginConfiguration()
         {

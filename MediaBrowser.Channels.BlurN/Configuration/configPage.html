@@ -184,7 +184,7 @@
                 var page = this;
                 ApiClient.getPluginConfiguration(BlurNConfigurationPage.pluginUniqueId).then(function (config) {
                     showLastPublishedDate(page, config.LastPublishDate);
-                    $('#BlurNTitle', page).html("BlurN " + config.BlurNVersion);
+                    $('#BlurNTitle', page).html('BlurN ' + config.BlurNVersion + " (latest version " + config.BlurNLatestVersion + ")");
                     $('#txtAge', page).val(config.Age || "");
                     $('#txtMinimumIMDBRating', page).val(config.MinimumIMDBRating || "");
                     $('#txtMinimumIMDBVotes', page).val(config.MinimumIMDBVotes || "");

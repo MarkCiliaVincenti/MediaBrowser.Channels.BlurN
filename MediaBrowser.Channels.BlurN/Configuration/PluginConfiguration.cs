@@ -1,8 +1,6 @@
-﻿using MediaBrowser.Controller.Channels;
+﻿using System;
+using System.Reflection;
 using MediaBrowser.Model.Plugins;
-using MediaBrowser.Channels.BlurN.Helpers;
-using System;
-using System.Collections.Generic;
 
 namespace MediaBrowser.Channels.BlurN.Configuration
 {
@@ -38,6 +36,7 @@ namespace MediaBrowser.Channels.BlurN.Configuration
         public bool Thriller { get; set; }
         public bool War { get; set; }
         public bool Western { get; set; }
+        public string BlurNVersion { get { return typeof(PluginConfiguration).GetTypeInfo().Assembly.GetName().Version.ToString(); } }
 
         public PluginConfiguration()
         {

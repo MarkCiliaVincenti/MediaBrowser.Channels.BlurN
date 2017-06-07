@@ -8,7 +8,7 @@
 
         <div data-role="content">
             <div class="content-primary">
-                <h1>BlurN</h1>
+                <h1 id="BlurNTitle">BlurN</h1>
                 <h3>BlurN will retrieve newly released movies on Blu-Ray and add notifications plus a channel listing when a movie matches a number of filters.</h3>
                 <form class="BlurNConfigurationForm">
                     <div class="inputContainer" style="display:none;">
@@ -184,6 +184,7 @@
                 var page = this;
                 ApiClient.getPluginConfiguration(BlurNConfigurationPage.pluginUniqueId).then(function (config) {
                     showLastPublishedDate(page, config.LastPublishDate);
+                    $('#BlurNTitle', page).html("BlurN " + config.BlurNVersion);
                     $('#txtAge', page).val(config.Age || "");
                     $('#txtMinimumIMDBRating', page).val(config.MinimumIMDBRating || "");
                     $('#txtMinimumIMDBVotes', page).val(config.MinimumIMDBVotes || "");

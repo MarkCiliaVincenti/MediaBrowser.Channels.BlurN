@@ -22,7 +22,7 @@ namespace MediaBrowser.Channels.BlurN.Helpers
 
             try
             {
-                string version = typeof(RefreshNewReleases).GetTypeInfo().Assembly.GetName().Version.ToString();
+                string version = config.BlurNVersion;
 
                 var values = new Dictionary<string, string>
                     {

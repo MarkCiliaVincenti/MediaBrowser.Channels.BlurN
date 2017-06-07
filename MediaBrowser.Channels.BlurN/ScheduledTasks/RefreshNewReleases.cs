@@ -243,14 +243,39 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 else if (!string.IsNullOrEmpty(blurNItem.ImdbId) && insertList.List.Any(x => x.ImdbId == blurNItem.ImdbId))
                 {
                     if (debug)
-                        Plugin.Logger.Debug("[BlurN] " + blurNItem.ImdbId + " is a duplicate, skipped.");
+                        Plugin.Logger.Debug(string.Format("[BlurN] {0} is a duplicate, skipped.", blurNItem.ImdbId));
                 }
                 else if (!string.IsNullOrEmpty(blurNItem.ImdbId) && !config.AddItemsAlreadyInLibrary && libDict.ContainsKey(blurNItem.ImdbId))
                 {
                     if (debug)
-                        Plugin.Logger.Debug("[BlurN] " + blurNItem.ImdbId + " is already in the library, skipped.");
+                        Plugin.Logger.Debug(string.Format("[BlurN] {0} is already in the library, skipped.", blurNItem.ImdbId));
                 }
-                else if (blurNItem.Type == "movie" && !genreExcludeList.Contains(blurNItem.FirstGenre) && blurNItem.ImdbRating >= config.MinimumIMDBRating && blurNItem.ImdbVotes >= config.MinimumIMDBVotes && blurNItem.Released > minAge)
+                else if (blurNItem.Type != "movie")
+                {
+                    if (debug)
+                        Plugin.Logger.Debug(string.Format("[BlurN] {0} is not of type 'movie', skipped.", blurNItem.Title));
+                }
+                else if (genreExcludeList.Contains(blurNItem.FirstGenre))
+                {
+                    if (debug)
+                        Plugin.Logger.Debug(string.Format("[BlurN] {0} has first genre '{1}' which is not whitelisted, skipped.", blurNItem.Title, blurNItem.FirstGenre));
+                }
+                else if (blurNItem.ImdbRating < config.MinimumIMDBRating)
+                {
+                    if (debug)
+                        Plugin.Logger.Debug(string.Format("[BlurN] {0} has an IMDb rating of {1} which is lower than the minimum setting of {2}, skipped.", blurNItem.Title, blurNItem.ImdbRating, config.MinimumIMDBRating));
+                }
+                else if (blurNItem.ImdbVotes < config.MinimumIMDBVotes)
+                {
+                    if (debug)
+                        Plugin.Logger.Debug(string.Format("[BlurN] {0} has a total of {1} IMDb votes which is lower than the minimum setting of {2} votes, skipped.", blurNItem.Title, blurNItem.ImdbVotes, config.MinimumIMDBVotes));
+                }
+                else if (blurNItem.Released < minAge)
+                {
+                    if (debug)
+                        Plugin.Logger.Debug(string.Format("[BlurN] {0} was released on {1} which is older than the setting of {2} days, skipped.", blurNItem.Title, blurNItem.Released.ToString("yyyy-MM-dd"), config.Age));
+                }
+                else // passed all filters, adding
                 {
                     await UpdateContentWithTmdbData(cancellationToken, blurNItem).ConfigureAwait(false);
 

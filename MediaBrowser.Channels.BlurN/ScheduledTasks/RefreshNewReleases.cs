@@ -22,6 +22,7 @@ using System.Net.Http;
 using System.Reflection;
 using MediaBrowser.Common;
 using MediaBrowser.Controller.Configuration;
+using System.Globalization;
 
 namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 {
@@ -112,7 +113,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                         Int32.TryParse(entry.Attribute("year").Value, out year);
 
                         decimal imdbRating = 0;
-                        decimal.TryParse(entry.Attribute("imdbRating").Value, out imdbRating);
+                        decimal.TryParse(entry.Attribute("imdbRating").Value, NumberStyles.Any, new CultureInfo("en-US"), out imdbRating);
 
                         int imdbVotes = 0;
                         Int32.TryParse(entry.Attribute("imdbVotes").Value.Replace(",", ""), out imdbVotes);

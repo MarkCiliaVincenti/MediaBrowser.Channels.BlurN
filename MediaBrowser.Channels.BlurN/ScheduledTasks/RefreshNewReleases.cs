@@ -125,22 +125,22 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                         return new BlurNItem()
                         {
                             BluRayReleaseDate = bluRayReleaseDate,
-                            Actors = entry.Attribute("actors").Value,
-                            Awards = entry.Attribute("awards").Value,
-                            Country = entry.Attribute("country").Value,
-                            Director = entry.Attribute("director").Value,
+                            Actors = WebUtility.HtmlDecode(entry.Attribute("actors").Value),
+                            Awards = WebUtility.HtmlDecode(entry.Attribute("awards").Value),
+                            Country = WebUtility.HtmlDecode(entry.Attribute("country").Value),
+                            Director = WebUtility.HtmlDecode(entry.Attribute("director").Value),
                             Genre = entry.Attribute("genre").Value,
                             ImdbId = entry.Attribute("imdbID").Value,
-                            Language = entry.Attribute("language").Value,
+                            Language = WebUtility.HtmlDecode(entry.Attribute("language").Value),
                             Metascore = entry.Attribute("metascore").Value,
-                            Plot = entry.Attribute("plot").Value,
-                            Poster = entry.Attribute("poster").Value,
+                            Plot = WebUtility.HtmlDecode(entry.Attribute("plot").Value),
+                            Poster = WebUtility.HtmlDecode(entry.Attribute("poster").Value),
                             Rated = entry.Attribute("rated").Value,
                             Runtime = entry.Attribute("runtime").Value,
                             RuntimeTicks = BlurNItem.ConvertRuntimeToTicks(entry.Attribute("runtime").Value),
                             Type = entry.Attribute("type").Value,
-                            Writer = entry.Attribute("writer").Value,
-                            Title = entry.Attribute("title").Value,
+                            Writer = WebUtility.HtmlDecode(entry.Attribute("writer").Value),
+                            Title = WebUtility.HtmlDecode(entry.Attribute("title").Value),
                             Year = year,
                             ImdbRating = imdbRating,
                             ImdbVotes = imdbVotes,
@@ -374,7 +374,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         private static string BuildOMDbApiUrl(Item item, int year, bool removeLast3Chars)
         {
             return baseOmdbApiUri + "/?t=" +
-                ((removeLast3Chars) ? WebUtility.UrlEncode(item.Title.Remove(item.Title.Length - 3)) : WebUtility.UrlEncode(item.Title)) +
+                ((removeLast3Chars) ? WebUtility.UrlEncode(WebUtility.HtmlDecode(item.Title).Remove(item.Title.Length - 3)) : WebUtility.UrlEncode(WebUtility.HtmlDecode(item.Title))) +
                 ((year > 0) ? "&y=" + year.ToString() : "") +
                 "&plot=short&r=xml&apikey=82e83907";
         }
@@ -460,10 +460,10 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                               select new Item
                               {
                                   FeedType = FeedType.RSS,
-                                  Content = item.Elements().First(i => i.Name.LocalName == "description").Value,
-                                  Link = item.Elements().First(i => i.Name.LocalName == "link").Value,
+                                  Content = WebUtility.HtmlDecode(item.Elements().First(i => i.Name.LocalName == "description").Value),
+                                  Link = WebUtility.HtmlDecode(item.Elements().First(i => i.Name.LocalName == "link").Value),
                                   PublishDate = ParseDate(item.Elements().First(i => i.Name.LocalName == "pubDate").Value),
-                                  Title = item.Elements().First(i => i.Name.LocalName == "title").Value.Replace(" 4K (Blu-ray)", "").Replace(" (Blu-ray)", "")
+                                  Title = WebUtility.HtmlDecode(item.Elements().First(i => i.Name.LocalName == "title").Value.Replace(" 4K (Blu-ray)", "").Replace(" (Blu-ray)", ""))
                               };
 
                 ItemList items = new ItemList() { List = entries.ToList() };

@@ -483,25 +483,5 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 new TaskTriggerInfo { Type = TaskTriggerInfo.TriggerInterval, IntervalTicks = TimeSpan.FromHours(4).Ticks}
             };
         }
-
-        public IEnumerable<ImageType> GetSupportedImages(IHasImages item)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<RemoteImageInfo>> GetImages(IHasImages item, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Supports(IHasImages item)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

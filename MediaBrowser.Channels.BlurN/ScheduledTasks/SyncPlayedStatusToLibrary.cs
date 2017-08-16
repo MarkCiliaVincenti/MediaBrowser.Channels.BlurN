@@ -94,7 +94,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             var users = _userManager.Users.ToList();
 
             if (debug)
-                Plugin.Logger.Debug("[BlurN] Syncing played status of {0} users to library.", users.Count);
+                Plugin.Logger.Debug($"[BlurN] Syncing played status of {users.Count} users to library.");
 
             for (int u = 0; u < users.Count; u++)
             {
@@ -102,7 +102,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 Dictionary<string, BaseItem> libDict = Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery() { HasImdbId = true, User = user, IsPlayed = false, SourceTypes = new SourceType[] { SourceType.Library } });
 
                 if (debug)
-                    Plugin.Logger.Debug("[BlurN] User {0} has {1} unplayed movies in library.", user.Name, libDict.Count);
+                    Plugin.Logger.Debug($"[BlurN] User {user.Name} has {libDict.Count} unplayed movies in library.");
 
                 for (int i = 0; i < items.List.Count; i++)
                 {
@@ -110,14 +110,14 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     BaseItem libraryItem;
                     if (libDict.TryGetValue(blurNItem.ImdbId, out libraryItem))
                     {
-                        UserItemData uid = _userDataManager.GetAllUserData(user.Id).FirstOrDefault(aud => aud.Key == config.ChannelRefreshCount + "-" + blurNItem.ImdbId);
+                        UserItemData uid = _userDataManager.GetAllUserData(user.Id).FirstOrDefault(aud => aud.Key == $"{config.ChannelRefreshCount}-{blurNItem.ImdbId}");
                         if (uid != default(UserItemData))
                         {
                             if (uid.Played)
                             {
                                 await libraryItem.MarkPlayed(user, uid.LastPlayedDate, true).ConfigureAwait(false);
                                 if (debug)
-                                    Plugin.Logger.Debug("[BlurN] Marked {0} as watched in movie library.", blurNItem.Title);
+                                    Plugin.Logger.Debug($"[BlurN] Marked {blurNItem.Title} as watched in movie library.");
                             }
                         }
                     }

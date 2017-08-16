@@ -89,14 +89,14 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 Dictionary<string, BaseItem> libDict = new Dictionary<string, BaseItem>();
 
                 if (debug)
-                    Plugin.Logger.Debug("[BlurN] User count is " + _userManager.Users.Count());
+                    Plugin.Logger.Debug($"[BlurN] User count is {_userManager.Users.Count()}");
 
                 library = _libraryManager.GetItemList(new InternalItemsQuery() { HasImdbId = true, SourceTypes = new SourceType[] { SourceType.Library } });
 
 
 
                 if (debug)
-                    Plugin.Logger.Debug("[BlurN] Library count is " + library.Count());
+                    Plugin.Logger.Debug($"[BlurN] Library count is {library.Count()}");
 
                 foreach (BaseItem libItem in library)
                 {
@@ -106,7 +106,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                         if (!libItem.IsPlayed(user))
                         {
                             if (debug)
-                                Plugin.Logger.Debug("[BlurN] Movie " + libItem.OriginalTitle + " not played by user " + user.Name);
+                                Plugin.Logger.Debug($"[BlurN] Movie {libItem.OriginalTitle} not played by user {user.Name}");
 
                             isPlayedByAll = false;
                             break;
@@ -116,7 +116,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     if (isPlayedByAll)
                     {
                         if (debug)
-                            Plugin.Logger.Debug("[BlurN] Movie " + libItem.OriginalTitle + " played by all users");
+                            Plugin.Logger.Debug($"[BlurN] Movie {libItem.OriginalTitle} played by all users");
 
 
                         string libIMDbId = libItem.GetProviderId(MetadataProviders.Imdb);
@@ -126,7 +126,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 }
 
                 if (debug)
-                    Plugin.Logger.Debug("[BlurN] Watched movie count is " + libDict.Count);
+                    Plugin.Logger.Debug($"[BlurN] Watched movie count is {libDict.Count}");
 
                 if (libDict.Count > 0)
                 {
@@ -150,7 +150,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                                     removedItems = true;
 
                                     if (debug)
-                                        Plugin.Logger.Debug("[BlurN] Removing watched movie " + libraryItem.OriginalTitle + " from BlurN channel");
+                                        Plugin.Logger.Debug($"[BlurN] Removing watched movie {libraryItem.OriginalTitle} from BlurN channel");
                                 }
                             }
 

@@ -25,7 +25,7 @@ namespace MediaBrowser.Channels.BlurN.Helpers
                     IsBasedOnUserEvent = false,
                     Name = "New release notification",
                     Type = NewRelease,
-                    Variables = new List<string> {"Title", "Year", "IMDbRating", "IMDbVotes" }
+                    Variables = new List<string> {"Title", "Year", "IMDbRating", "IMDbVotes", "IMDbURL" }
                 }
             };
         }

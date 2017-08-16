@@ -30,7 +30,7 @@ namespace MediaBrowser.Channels.BlurN
                 new PluginPageInfo
                 {
                     Name = Name,
-                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.configPage.html"
+                    EmbeddedResourcePath = $"{GetType().Namespace}.Configuration.configPage.html"
                 }
             };
         }

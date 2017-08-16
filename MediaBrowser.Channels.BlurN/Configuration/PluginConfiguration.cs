@@ -49,8 +49,11 @@ namespace MediaBrowser.Channels.BlurN.Configuration
             {
                 using (var _httpClient = new HttpClient())
                 {
-                using (var response = await _httpClient.GetAsync("https://raw.githubusercontent.com/MarkCiliaVincenti/MediaBrowser.Channels.BlurN/master/MediaBrowser.Channels.BlurN/latestversion.txt", CancellationToken.None).ConfigureAwait(false))
-                    return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    using (var response = await _httpClient.GetAsync(
+                        (BlurNVersion.EndsWith("26")) ?
+                        "https://raw.githubusercontent.com/MarkCiliaVincenti/MediaBrowser.Channels.BlurN/Pre3.2.27.0/MediaBrowser.Channels.BlurN/latestversion.txt" :
+                        "https://raw.githubusercontent.com/MarkCiliaVincenti/MediaBrowser.Channels.BlurN/master/MediaBrowser.Channels.BlurN/latestversion.txt", CancellationToken.None).ConfigureAwait(false))
+                        return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 }
             }
             catch

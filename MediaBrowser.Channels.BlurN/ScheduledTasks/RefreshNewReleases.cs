@@ -149,7 +149,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     }
                     else if (Plugin.Instance.Configuration.EnableDebugLogging)
                     {
-                        Plugin.Logger.Debug("[BlurN] Received an error from " + url + " - " + root.Elements().First().Value);
+                        Plugin.Logger.Debug($"[BlurN] Received an error from {url} - {root.Elements().First().Value}");
                     }
                     return new BlurNItem();
                 }
@@ -187,7 +187,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             bool debug = config.EnableDebugLogging;
 
             if (debug)
-                Plugin.Logger.Debug("[BlurN] Found " + items.Count + " items in feed");
+                Plugin.Logger.Debug($"[BlurN] Found {items.Count} items in feed");
 
             DateTime lastPublishDate = config.LastPublishDate;
             DateTime minAge = DateTime.Today.AddDays(0 - config.Age);
@@ -204,7 +204,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             string failedDataPath = AddPreviouslyFailedItemsToFinalItems(finalItems);
 
             if (debug)
-                Plugin.Logger.Debug("[BlurN] Checking " + finalItems.Count + " new items");
+                Plugin.Logger.Debug($"[BlurN] Checking {finalItems.Count} new items");
 
             var genreExcludeList = GetGenreExcludeList(config);
 
@@ -244,37 +244,37 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 else if (!string.IsNullOrEmpty(blurNItem.ImdbId) && insertList.List.Any(x => x.ImdbId == blurNItem.ImdbId))
                 {
                     if (debug)
-                        Plugin.Logger.Debug(string.Format("[BlurN] {0} is a duplicate, skipped.", blurNItem.ImdbId));
+                        Plugin.Logger.Debug($"[BlurN] {blurNItem.ImdbId} is a duplicate, skipped.");
                 }
                 else if (!string.IsNullOrEmpty(blurNItem.ImdbId) && !config.AddItemsAlreadyInLibrary && libDict.ContainsKey(blurNItem.ImdbId))
                 {
                     if (debug)
-                        Plugin.Logger.Debug(string.Format("[BlurN] {0} is already in the library, skipped.", blurNItem.ImdbId));
+                        Plugin.Logger.Debug($"[BlurN] {blurNItem.ImdbId} is already in the library, skipped.");
                 }
                 else if (blurNItem.Type != "movie")
                 {
                     if (debug)
-                        Plugin.Logger.Debug(string.Format("[BlurN] {0} is not of type 'movie', skipped.", blurNItem.Title));
+                        Plugin.Logger.Debug($"[BlurN] {blurNItem.Title} is not of type 'movie', skipped.");
                 }
                 else if (genreExcludeList.Contains(blurNItem.FirstGenre))
                 {
                     if (debug)
-                        Plugin.Logger.Debug(string.Format("[BlurN] {0} has first genre '{1}' which is not whitelisted, skipped.", blurNItem.Title, blurNItem.FirstGenre));
+                        Plugin.Logger.Debug($"[BlurN] {blurNItem.Title} has first genre '{blurNItem.FirstGenre}' which is not whitelisted, skipped.");
                 }
                 else if (blurNItem.ImdbRating < config.MinimumIMDBRating)
                 {
                     if (debug)
-                        Plugin.Logger.Debug(string.Format("[BlurN] {0} has an IMDb rating of {1} which is lower than the minimum setting of {2}, skipped.", blurNItem.Title, blurNItem.ImdbRating, config.MinimumIMDBRating));
+                        Plugin.Logger.Debug($"[BlurN] {blurNItem.Title} has an IMDb rating of {blurNItem.ImdbRating} which is lower than the minimum setting of {config.MinimumIMDBRating}, skipped.");
                 }
                 else if (blurNItem.ImdbVotes < config.MinimumIMDBVotes)
                 {
                     if (debug)
-                        Plugin.Logger.Debug(string.Format("[BlurN] {0} has a total of {1} IMDb votes which is lower than the minimum setting of {2} votes, skipped.", blurNItem.Title, blurNItem.ImdbVotes, config.MinimumIMDBVotes));
+                        Plugin.Logger.Debug($"[BlurN] {blurNItem.Title} has a total of {blurNItem.ImdbVotes} IMDb votes which is lower than the minimum setting of {config.MinimumIMDBVotes} votes, skipped.");
                 }
                 else if (blurNItem.Released < minAge)
                 {
                     if (debug)
-                        Plugin.Logger.Debug(string.Format("[BlurN] {0} was released on {1} which is older than the setting of {2} days, skipped.", blurNItem.Title, blurNItem.Released.ToString("yyyy-MM-dd"), config.Age));
+                        Plugin.Logger.Debug($"[BlurN] {blurNItem.Title} was released on {blurNItem.Released.ToString("yyyy-MM-dd")} which is older than the setting of {config.Age} days, skipped.");
                 }
                 else // passed all filters, adding
                 {
@@ -287,6 +287,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     variables.Add("Year", blurNItem.Year.ToString());
                     variables.Add("IMDbRating", blurNItem.ImdbRating.ToString());
                     variables.Add("IMDbVotes", blurNItem.ImdbVotes.ToString("#,##0"));
+                    variables.Add("IMDbURL", blurNItem.ImdbUrl);
 
                     await Plugin.NotificationManager.SendNotification(new NotificationRequest()
                     {
@@ -294,11 +295,11 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                         Date = DateTime.Now,
                         Level = NotificationLevel.Normal,
                         NotificationType = BlurNNotificationType.NewRelease,
-                        Url = "http://www.imdb.com/title/" + blurNItem.ImdbId + "/"
+                        Url = blurNItem.ImdbUrl
                     }, cancellationToken).ConfigureAwait(false);
 
                     if (debug)
-                        Plugin.Logger.Debug("[BlurN] Adding " + blurNItem.Title + " to the BlurN channel.");
+                        Plugin.Logger.Debug($"[BlurN] Adding {blurNItem.Title} to the BlurN channel.");
                 }
             }
 
@@ -330,13 +331,13 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             Plugin.Instance.SaveConfiguration();
 
             if (debug)
-                Plugin.Logger.Debug("[BlurN] Configuration saved. MediaBrowser.Channels.BlurN.Data.json path is " + dataPath);
+                Plugin.Logger.Debug($"[BlurN] Configuration saved. MediaBrowser.Channels.BlurN.Data.json path is {dataPath}");
 
             _json.SerializeToFile(insertList.List, dataPath);
             _json.SerializeToFile(failedList.List, failedDataPath);
 
             if (debug)
-                Plugin.Logger.Debug("[BlurN] json files saved");
+                Plugin.Logger.Debug($"[BlurN] JSON files saved to {dataPath}");
 
             Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "end", "refresh", cancellationToken);
 
@@ -373,9 +374,9 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
         private static string BuildOMDbApiUrl(Item item, int year, bool removeLast3Chars)
         {
-            return baseOmdbApiUri + "/?t=" +
+            return $"{baseOmdbApiUri}/?t=" +
                 ((removeLast3Chars) ? WebUtility.UrlEncode(WebUtility.HtmlDecode(item.Title).Remove(item.Title.Length - 3)) : WebUtility.UrlEncode(WebUtility.HtmlDecode(item.Title))) +
-                ((year > 0) ? "&y=" + year.ToString() : "") +
+                ((year > 0) ? $"&y={year.ToString()}" : "") +
                 "&plot=short&r=xml&apikey=82e83907";
         }
 
@@ -407,7 +408,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             {
                 using (var tmdbContent = await _httpClient.Get(new HttpRequestOptions()
                 {
-                    Url = "https://api.themoviedb.org/3/find/" + blurNItem.ImdbId + "?api_key=3e97b8d1c00a0f2fe72054febe695276&external_source=imdb_id",
+                    Url = $"https://api.themoviedb.org/3/find/{blurNItem.ImdbId}?api_key=3e97b8d1c00a0f2fe72054febe695276&external_source=imdb_id",
                     CancellationToken = cancellationToken,
                     BufferContent = false,
                     EnableDefaultUserAgent = true,
@@ -416,7 +417,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 {
                     var tmdb = _json.DeserializeFromStream<TmdbMovieFindResult>(tmdbContent);
                     TmdbMovieSearchResult tmdbMovie = tmdb.movie_results.First();
-                    blurNItem.Poster = "https://image.tmdb.org/t/p/original" + tmdbMovie.poster_path;
+                    blurNItem.Poster = $"https://image.tmdb.org/t/p/original{tmdbMovie.poster_path}";
                     blurNItem.TmdbId = tmdbMovie.id;
                 }
             }

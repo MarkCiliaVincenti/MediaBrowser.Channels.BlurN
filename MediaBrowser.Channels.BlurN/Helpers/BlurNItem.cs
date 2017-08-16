@@ -114,6 +114,14 @@ namespace MediaBrowser.Channels.BlurN.Helpers
         [XmlElement("ImdbId")]
         public string ImdbId { get; set; }
 
+        public string ImdbUrl
+        {
+            get
+            {
+                return $"http://www.imdb.com/title/{ImdbId}/";
+            }
+        }
+
         [XmlElement("Type")]
         public string Type { get; set; }
 

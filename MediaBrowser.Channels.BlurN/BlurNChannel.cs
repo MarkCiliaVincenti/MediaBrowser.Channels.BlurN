@@ -123,7 +123,7 @@ namespace MediaBrowser.Channels.BlurN
             {
                 case ImageType.Thumb:
                     {
-                        var path = GetType().Namespace + ".Images." + type.ToString().ToLower() + ".png";
+                        var path = $"{GetType().Namespace}.Images.{type.ToString().ToLower()}.png";
 
                         return Task.FromResult(new DynamicImageResponse
                         {
@@ -133,7 +133,7 @@ namespace MediaBrowser.Channels.BlurN
                         });
                     }
                 default:
-                    throw new ArgumentException("Unsupported image type: " + type);
+                    throw new ArgumentException($"Unsupported image type: {type}");
             }
         }
 
@@ -161,7 +161,7 @@ namespace MediaBrowser.Channels.BlurN
             Dictionary<string, BaseItem> libDict = Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery() { HasImdbId = true, User = user, SourceTypes = new SourceType[] { SourceType.Library } });
 
             if (debug)
-                Plugin.Logger.Debug("[BlurN] Found {0} items in movies library", libDict.Count);
+                Plugin.Logger.Debug($"[BlurN] Found {libDict.Count} items in movies library");
 
             BlurNItems items = new BlurNItems();
             string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
@@ -193,7 +193,7 @@ namespace MediaBrowser.Channels.BlurN
                         items.List.RemoveAt(i);
                         i--;
                         if (inChannel && debug)
-                            Plugin.Logger.Debug("[BlurN] Hiding movie '{0}' from BlurN channel list as watched by user", blurNItem.Title);
+                            Plugin.Logger.Debug($"[BlurN] Hiding movie '{blurNItem.Title}' from BlurN channel list as watched by user");
                     }
                     else
                     {
@@ -251,7 +251,7 @@ namespace MediaBrowser.Channels.BlurN
 
                 showList.List = items.List.GetRange(index, limit);
                 if (inChannel && debug)
-                    Plugin.Logger.Debug("[BlurN] Showing range with index {0} and limit {1}", index, limit);
+                    Plugin.Logger.Debug($"[BlurN] Showing range with index {index} and limit {limit}");
             }
             else
             {
@@ -267,7 +267,7 @@ namespace MediaBrowser.Channels.BlurN
                 BlurNItem blurNItem = showList.List[i];
 
                 if (inChannel && debug)
-                    Plugin.Logger.Debug("[BlurN] Showing movie '{0}' to BlurN channel list", blurNItem.Title);
+                    Plugin.Logger.Debug($"[BlurN] Showing movie '{blurNItem.Title}' to BlurN channel list");
 
                 List<string> directors = (string.IsNullOrEmpty(blurNItem.Director)) ? new List<string>() : blurNItem.Director.Replace(", ", ",").Split(',').ToList();
                 List<string> writers = (string.IsNullOrEmpty(blurNItem.Writer)) ? new List<string>() : blurNItem.Writer.Replace(", ", ",").Split(',').ToList();
@@ -345,18 +345,18 @@ namespace MediaBrowser.Channels.BlurN
                         cmi.Width = videoStream.Width;
                     }
                     if (debug)
-                        Plugin.Logger.Debug("[BlurN] Linked movie {0} to library. Path: {1}, Substituted Path: {2}", blurNItem.Title, blurNItem.LibraryItem.Path, cmi.Path);
+                        Plugin.Logger.Debug($"[BlurN] Linked movie {blurNItem.Title} to library. Path: {blurNItem.LibraryItem.Path}, Substituted Path: {cmi.Path}");
                     cii.MediaSources = new List<ChannelMediaInfo>() { cmi };
                 }
 
                 result.Items.Add(cii);
 
                 if (inChannel && debug)
-                    Plugin.Logger.Debug("[BlurN] Added movie '{0}' to BlurN channel list", blurNItem.Title);
+                    Plugin.Logger.Debug($"[BlurN] Added movie '{blurNItem.Title}' to BlurN channel list");
             }
 
             if (inChannel && debug)
-                Plugin.Logger.Debug("[BlurN] Set total record count ({0})", (int)result.TotalRecordCount);
+                Plugin.Logger.Debug($"[BlurN] Set total record count ({(int)result.TotalRecordCount})");
 
             return result;
         }

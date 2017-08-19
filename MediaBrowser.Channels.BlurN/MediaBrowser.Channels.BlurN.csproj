@@ -65,15 +65,12 @@
   <ItemGroup>
     <Reference Include="MediaBrowser.Common, Version=3.2.26.24, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MediaBrowser.Common.3.0.729\lib\portable-net45+win8+wpa81\MediaBrowser.Common.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="MediaBrowser.Controller, Version=3.2.26.24, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MediaBrowser.Server.Core.3.0.729\lib\portable-net45+win8+wpa81\MediaBrowser.Controller.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="MediaBrowser.Model, Version=3.2.26.24, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MediaBrowser.Common.3.0.729\lib\portable-net45+win8+wpa81\MediaBrowser.Model.dll</HintPath>
-      <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -81,7 +78,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(TargetPath)" "E:\emby.windows26\plugins\" /y</PostBuildEvent>
+    <PostBuildEvent>xcopy "$(TargetPath)" "E:\emby.windows\plugins\" /y
+xcopy "$(TargetPath)" "E:\emby.windowsBETA\plugins\" /y</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -5,8 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
 using System.Net.Http;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace MediaBrowser.Channels.BlurN.Configuration
 {
@@ -45,28 +43,18 @@ namespace MediaBrowser.Channels.BlurN.Configuration
         public string BlurNVersion { get { return typeof(PluginConfiguration).GetTypeInfo().Assembly.GetName().Version.ToString(); } }
         public string BlurNLatestVersion { get { return GetLatestVersion().Result; } }
 
-        private string Branch
-        {
-            get
-            {
-                if (BlurNVersion.EndsWith("26"))
-                    return "Pre3.2.27.0";
-                return "master";
-            }
-        }
-
-        private string LatestVersionURI
-        {
-            get { return $"https://raw.githubusercontent.com/MarkCiliaVincenti/MediaBrowser.Channels.BlurN/{Branch}/MediaBrowser.Channels.BlurN/latestversion.txt"; }
-        }
-
         private async Task<string> GetLatestVersion()
         {
             try
             {
                 using (var _httpClient = new HttpClient())
-                    using (var response = await _httpClient.GetAsync(LatestVersionURI, CancellationToken.None).ConfigureAwait(false))
+                {
+                    using (var response = await _httpClient.GetAsync(
+                        (BlurNVersion.EndsWith("26")) ?
+                        "https://raw.githubusercontent.com/MarkCiliaVincenti/MediaBrowser.Channels.BlurN/Pre3.2.27.0/MediaBrowser.Channels.BlurN/latestversion.txt" :
+                        "https://raw.githubusercontent.com/MarkCiliaVincenti/MediaBrowser.Channels.BlurN/master/MediaBrowser.Channels.BlurN/latestversion.txt", CancellationToken.None).ConfigureAwait(false))
                         return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                }
             }
             catch
             {

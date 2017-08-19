@@ -147,8 +147,10 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                             Released = released
                         };
                     }
-                    else
-                        Plugin.DebugLogger($"Received an error from {url} - {root.Elements().First().Value}");
+                    else if (Plugin.Instance.Configuration.EnableDebugLogging)
+                    {
+                        Plugin.Logger.Debug($"[BlurN] Received an error from {url} - {root.Elements().First().Value}");
+                    }
                     return new BlurNItem();
                 }
             }
@@ -182,7 +184,10 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             ConvertPostersFromW640ToOriginal(config, dataPath);
 
-            Plugin.DebugLogger($"Found {items.Count} items in feed");
+            bool debug = config.EnableDebugLogging;
+
+            if (debug)
+                Plugin.Logger.Debug($"[BlurN] Found {items.Count} items in feed");
 
             DateTime lastPublishDate = config.LastPublishDate;
             DateTime minAge = DateTime.Today.AddDays(0 - config.Age);
@@ -198,7 +203,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             string failedDataPath = AddPreviouslyFailedItemsToFinalItems(finalItems);
 
-            Plugin.DebugLogger($"Checking {finalItems.Count} new items");
+            if (debug)
+                Plugin.Logger.Debug($"[BlurN] Checking {finalItems.Count} new items");
 
             var genreExcludeList = GetGenreExcludeList(config);
 
@@ -236,19 +242,40 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 if (blurNItem == null)
                     failedList.List.Add(new FailedBlurNItem() { Title = item.Title, Year = year });
                 else if (!string.IsNullOrEmpty(blurNItem.ImdbId) && insertList.List.Any(x => x.ImdbId == blurNItem.ImdbId))
-                    Plugin.DebugLogger($"{blurNItem.ImdbId} is a duplicate, skipped.");
+                {
+                    if (debug)
+                        Plugin.Logger.Debug($"[BlurN] {blurNItem.ImdbId} is a duplicate, skipped.");
+                }
                 else if (!string.IsNullOrEmpty(blurNItem.ImdbId) && !config.AddItemsAlreadyInLibrary && libDict.ContainsKey(blurNItem.ImdbId))
-                    Plugin.DebugLogger($"{blurNItem.ImdbId} is already in the library, skipped.");
+                {
+                    if (debug)
+                        Plugin.Logger.Debug($"[BlurN] {blurNItem.ImdbId} is already in the library, skipped.");
+                }
                 else if (blurNItem.Type != "movie")
-                    Plugin.DebugLogger($"{blurNItem.Title} is not of type 'movie', skipped.");
+                {
+                    if (debug)
+                        Plugin.Logger.Debug($"[BlurN] {blurNItem.Title} is not of type 'movie', skipped.");
+                }
                 else if (genreExcludeList.Contains(blurNItem.FirstGenre))
-                    Plugin.DebugLogger($"{blurNItem.Title} has first genre '{blurNItem.FirstGenre}' which is not whitelisted, skipped.");
+                {
+                    if (debug)
+                        Plugin.Logger.Debug($"[BlurN] {blurNItem.Title} has first genre '{blurNItem.FirstGenre}' which is not whitelisted, skipped.");
+                }
                 else if (blurNItem.ImdbRating < config.MinimumIMDBRating)
-                    Plugin.DebugLogger($"{blurNItem.Title} has an IMDb rating of {blurNItem.ImdbRating} which is lower than the minimum setting of {config.MinimumIMDBRating}, skipped.");
+                {
+                    if (debug)
+                        Plugin.Logger.Debug($"[BlurN] {blurNItem.Title} has an IMDb rating of {blurNItem.ImdbRating} which is lower than the minimum setting of {config.MinimumIMDBRating}, skipped.");
+                }
                 else if (blurNItem.ImdbVotes < config.MinimumIMDBVotes)
-                    Plugin.DebugLogger($"{blurNItem.Title} has a total of {blurNItem.ImdbVotes} IMDb votes which is lower than the minimum setting of {config.MinimumIMDBVotes} votes, skipped.");
+                {
+                    if (debug)
+                        Plugin.Logger.Debug($"[BlurN] {blurNItem.Title} has a total of {blurNItem.ImdbVotes} IMDb votes which is lower than the minimum setting of {config.MinimumIMDBVotes} votes, skipped.");
+                }
                 else if (blurNItem.Released < minAge)
-                    Plugin.DebugLogger($"{blurNItem.Title} was released on {blurNItem.Released.ToString("yyyy-MM-dd")} which is older than the setting of {config.Age} days, skipped.");
+                {
+                    if (debug)
+                        Plugin.Logger.Debug($"[BlurN] {blurNItem.Title} was released on {blurNItem.Released.ToString("yyyy-MM-dd")} which is older than the setting of {config.Age} days, skipped.");
+                }
                 else // passed all filters, adding
                 {
                     await UpdateContentWithTmdbData(cancellationToken, blurNItem).ConfigureAwait(false);
@@ -271,7 +298,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                         Url = blurNItem.ImdbUrl
                     }, cancellationToken).ConfigureAwait(false);
 
-                    Plugin.DebugLogger($"Adding {blurNItem.Title} to the BlurN channel.");
+                    if (debug)
+                        Plugin.Logger.Debug($"[BlurN] Adding {blurNItem.Title} to the BlurN channel.");
                 }
             }
 
@@ -302,12 +330,14 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             config.LastPublishDate = newPublishDate;
             Plugin.Instance.SaveConfiguration();
 
-            Plugin.DebugLogger($"Configuration saved. MediaBrowser.Channels.BlurN.Data.json path is {dataPath}");
+            if (debug)
+                Plugin.Logger.Debug($"[BlurN] Configuration saved. MediaBrowser.Channels.BlurN.Data.json path is {dataPath}");
 
             _json.SerializeToFile(insertList.List, dataPath);
             _json.SerializeToFile(failedList.List, failedDataPath);
 
-            Plugin.DebugLogger($"JSON files saved to {dataPath}");
+            if (debug)
+                Plugin.Logger.Debug($"[BlurN] JSON files saved to {dataPath}");
 
             Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "end", "refresh", cancellationToken);
 
@@ -344,7 +374,10 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
         private static string BuildOMDbApiUrl(Item item, int year, bool removeLast3Chars)
         {
-            return $"{baseOmdbApiUri}/?t={((removeLast3Chars) ? WebUtility.UrlEncode(WebUtility.HtmlDecode(item.Title).Remove(item.Title.Length - 3)) : WebUtility.UrlEncode(WebUtility.HtmlDecode(item.Title)))}{((year > 0) ? "&y={year.ToString()}" : "")}&plot=short&r=xml&apikey=82e83907";
+            return $"{baseOmdbApiUri}/?t=" +
+                ((removeLast3Chars) ? WebUtility.UrlEncode(WebUtility.HtmlDecode(item.Title).Remove(item.Title.Length - 3)) : WebUtility.UrlEncode(WebUtility.HtmlDecode(item.Title))) +
+                ((year > 0) ? $"&y={year.ToString()}" : "") +
+                "&plot=short&r=xml&apikey=82e83907";
         }
 
         private void ConvertPostersFromW640ToOriginal(Configuration.PluginConfiguration config, string dataPath)

@@ -81,17 +81,22 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "start", "removeplayed", cancellationToken);
 
             var config = Plugin.Instance.Configuration;
+            bool debug = config.EnableDebugLogging;
 
             if (config.HidePlayedMovies)
             {
                 IEnumerable<BaseItem> library;
                 Dictionary<string, BaseItem> libDict = new Dictionary<string, BaseItem>();
 
-                Plugin.DebugLogger($"User count is {_userManager.Users.Count()}");
+                if (debug)
+                    Plugin.Logger.Debug($"[BlurN] User count is {_userManager.Users.Count()}");
 
                 library = _libraryManager.GetItemList(new InternalItemsQuery() { HasImdbId = true, SourceTypes = new SourceType[] { SourceType.Library } });
 
-                Plugin.DebugLogger($"Library count is {library.Count()}");
+
+
+                if (debug)
+                    Plugin.Logger.Debug($"[BlurN] Library count is {library.Count()}");
 
                 foreach (BaseItem libItem in library)
                 {
@@ -100,7 +105,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     {
                         if (!libItem.IsPlayed(user))
                         {
-                            Plugin.DebugLogger($"Movie {libItem.OriginalTitle} not played by user {user.Name}");
+                            if (debug)
+                                Plugin.Logger.Debug($"[BlurN] Movie {libItem.OriginalTitle} not played by user {user.Name}");
 
                             isPlayedByAll = false;
                             break;
@@ -109,7 +115,9 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
                     if (isPlayedByAll)
                     {
-                        Plugin.DebugLogger($"Movie {libItem.OriginalTitle} played by all users");
+                        if (debug)
+                            Plugin.Logger.Debug($"[BlurN] Movie {libItem.OriginalTitle} played by all users");
+
 
                         string libIMDbId = libItem.GetProviderId(MetadataProviders.Imdb);
                         if (!libDict.ContainsKey(libIMDbId))
@@ -117,7 +125,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     }
                 }
 
-                Plugin.DebugLogger($"Watched movie count is {libDict.Count}");
+                if (debug)
+                    Plugin.Logger.Debug($"[BlurN] Watched movie count is {libDict.Count}");
 
                 if (libDict.Count > 0)
                 {
@@ -140,13 +149,15 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                                     ci--;
                                     removedItems = true;
 
-                                    Plugin.DebugLogger($"Removing watched movie {libraryItem.OriginalTitle} from BlurN channel");
+                                    if (debug)
+                                        Plugin.Logger.Debug($"[BlurN] Removing watched movie {libraryItem.OriginalTitle} from BlurN channel");
                                 }
                             }
 
                             if (removedItems)
                             {
-                                Plugin.DebugLogger("Saving updated BlurN database");
+                                if (debug)
+                                    Plugin.Logger.Debug("[BlurN] Saving updated BlurN database");
 
                                 _json.SerializeToFile(existingData, dataPath);
                             }
@@ -154,8 +165,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     }
                 }
             }
-            else
-                Plugin.DebugLogger("Did not remove played movies due to configuration setting.");
+            else if (debug)
+                Plugin.Logger.Debug("[BlurN] Did not remove played movies due to configuration setting.");
 
             Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "end", "removeplayed", cancellationToken);
 

@@ -53,14 +53,9 @@ namespace MediaBrowser.Channels.BlurN
             }
         }
 
-        private static ILogger Logger;
+        public static ILogger Logger;
         public static INotificationManager NotificationManager;
 
-        public static void DebugLogger(string message, params object[] paramList)
-        {
-            if (Instance.Configuration.EnableDebugLogging)
-                Logger.Debug($"[BlurN] {message}", paramList);
-        }
 
         public override void OnUninstalling()
         {

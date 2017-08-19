@@ -152,14 +152,17 @@ namespace MediaBrowser.Channels.BlurN
 
             var config = await BlurNTasks.CheckIfResetDatabaseRequested(cancellationToken, _json, _appPaths, _fileSystem).ConfigureAwait(false);
 
-            if (inChannel)
-                Plugin.DebugLogger("Entered BlurN channel list");
+            bool debug = config.EnableDebugLogging;
+
+            if (inChannel && debug)
+                Plugin.Logger.Debug("[BlurN] Entered BlurN channel list");
 
             User user = _userManager.GetUserById(query.UserId);
 
             Dictionary<string, BaseItem> libDict = Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery() { HasImdbId = true, User = user, SourceTypes = new SourceType[] { SourceType.Library } });
 
-            Plugin.DebugLogger($"Found {libDict.Count} items in movies library");
+            if (debug)
+                Plugin.Logger.Debug($"[BlurN] Found {libDict.Count} items in movies library");
 
             BlurNItems items = new BlurNItems();
             string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
@@ -167,13 +170,13 @@ namespace MediaBrowser.Channels.BlurN
             if (_fileSystem.FileExists(dataPath))
                 items.List = _json.DeserializeFromFile<List<BlurNItem>>(dataPath);
 
-            if (inChannel)
-                Plugin.DebugLogger("Retrieved items");
+            if (inChannel && debug)
+                Plugin.Logger.Debug("[BlurN] Retrieved items");
 
             if (items == null)
             {
-                if (inChannel)
-                    Plugin.DebugLogger("Items is null, set to new list");
+                if (inChannel && debug)
+                    Plugin.Logger.Debug("[BlurN] Items is null, set to new list");
                 items = new BlurNItems();
                 Plugin.Instance.SaveConfiguration();
             }
@@ -190,8 +193,8 @@ namespace MediaBrowser.Channels.BlurN
                     {
                         items.List.RemoveAt(i);
                         i--;
-                        if (inChannel)
-                            Plugin.DebugLogger($"Hiding movie '{blurNItem.Title}' from BlurN channel list as watched by user");
+                        if (inChannel && debug)
+                            Plugin.Logger.Debug($"[BlurN] Hiding movie '{blurNItem.Title}' from BlurN channel list as watched by user");
                     }
                     else
                     {
@@ -248,14 +251,14 @@ namespace MediaBrowser.Channels.BlurN
                     limit = items.List.Count - index;
 
                 showList.List = items.List.GetRange(index, limit);
-                if (inChannel)
-                    Plugin.DebugLogger($"Showing range with index {index} and limit {limit}");
+                if (inChannel && debug)
+                    Plugin.Logger.Debug($"[BlurN] Showing range with index {index} and limit {limit}");
             }
             else
             {
                 showList.List = items.List;
-                if (inChannel)
-                    Plugin.DebugLogger("Showing full list");
+                if (inChannel && debug)
+                    Plugin.Logger.Debug("[BlurN] Showing full list");
             }
 
             ChannelItemResult result = new ChannelItemResult() { TotalRecordCount = items.List.Count };
@@ -264,26 +267,26 @@ namespace MediaBrowser.Channels.BlurN
             {
                 BlurNItem blurNItem = showList.List[i];
 
-                if (inChannel)
-                    Plugin.DebugLogger($"Showing movie '{blurNItem.Title}' to BlurN channel list");
+                if (inChannel && debug)
+                    Plugin.Logger.Debug($"[BlurN] Showing movie '{blurNItem.Title}' to BlurN channel list");
 
-                var directors = CSVParse(blurNItem.Director);
-                var writers = CSVParse(blurNItem.Writer);
-                var actors = CSVParse(blurNItem.Actors);
+                List<string> directors = (string.IsNullOrEmpty(blurNItem.Director)) ? new List<string>() : blurNItem.Director.Replace(", ", ",").Split(',').ToList();
+                List<string> writers = (string.IsNullOrEmpty(blurNItem.Writer)) ? new List<string>() : blurNItem.Writer.Replace(", ", ",").Split(',').ToList();
+                List<string> actors = (string.IsNullOrEmpty(blurNItem.Actors)) ? new List<string>() : blurNItem.Actors.Replace(", ", ",").Split(',').ToList();
 
-                var people = new List<PersonInfo>();
-                foreach (var director in directors)
+                List<PersonInfo> people = new List<PersonInfo>();
+                foreach (string director in directors)
                     people.Add(new PersonInfo() { Name = director, Role = "Director" });
-                foreach (var writer in writers)
+                foreach (string writer in writers)
                     people.Add(new PersonInfo() { Name = writer, Role = "Writer" });
                 foreach (string actor in actors)
                     people.Add(new PersonInfo() { Name = actor, Role = "Actor" });
 
-                var genres = CSVParse(blurNItem.Genre).ToList();
+                List<string> genres = (string.IsNullOrEmpty(blurNItem.Genre)) ? new List<string>() : blurNItem.Genre.Replace(", ", ",").Split(',').ToList();
 
                 var cii = new ChannelItemInfo()
                 {
-                    Id = $"{config.ChannelRefreshCount.ToString()}-{blurNItem.ImdbId}",
+                    Id = config.ChannelRefreshCount.ToString() + "-" + blurNItem.ImdbId,
                     IndexNumber = i,
                     CommunityRating = (float)blurNItem.ImdbRating,
                     ContentType = ChannelMediaContentType.Movie,
@@ -342,28 +345,21 @@ namespace MediaBrowser.Channels.BlurN
                         cmi.VideoProfile = videoStream.Profile;
                         cmi.Width = videoStream.Width;
                     }
-                    Plugin.DebugLogger($"Linked movie {blurNItem.Title} to library. Path: {blurNItem.LibraryItem.Path}, Substituted Path: {cmi.Path}");
+                    if (debug)
+                        Plugin.Logger.Debug($"[BlurN] Linked movie {blurNItem.Title} to library. Path: {blurNItem.LibraryItem.Path}, Substituted Path: {cmi.Path}");
                     cii.MediaSources = new List<ChannelMediaInfo>() { cmi };
                 }
 
                 result.Items.Add(cii);
 
-                if (inChannel)
-                    Plugin.DebugLogger($"Added movie '{blurNItem.Title}' to BlurN channel list");
+                if (inChannel && debug)
+                    Plugin.Logger.Debug($"[BlurN] Added movie '{blurNItem.Title}' to BlurN channel list");
             }
 
-            if (inChannel)
-                Plugin.DebugLogger($"Set total record count ({(int)result.TotalRecordCount})");
+            if (inChannel && debug)
+                Plugin.Logger.Debug($"[BlurN] Set total record count ({(int)result.TotalRecordCount})");
 
             return result;
-        }
-
-        private IEnumerable<string> CSVParse(string input)
-        {
-            if (string.IsNullOrEmpty(input))
-                yield break;
-            foreach (var output in input.Split(',').ToList())
-                yield return output.Trim();
         }
 
         public IEnumerable<ImageType> GetSupportedChannelImages()

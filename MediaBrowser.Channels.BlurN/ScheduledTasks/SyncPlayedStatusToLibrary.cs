@@ -82,6 +82,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "start", "syncplayed", cancellationToken);
 
             var config = Plugin.Instance.Configuration;
+            bool debug = config.EnableDebugLogging;
 
             BlurNItems items = new BlurNItems();
 
@@ -92,14 +93,16 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             var users = _userManager.Users.ToList();
 
-            Plugin.DebugLogger($"Syncing played status of {users.Count} users to library.");
+            if (debug)
+                Plugin.Logger.Debug($"[BlurN] Syncing played status of {users.Count} users to library.");
 
             for (int u = 0; u < users.Count; u++)
             {
                 User user = users[u];
                 Dictionary<string, BaseItem> libDict = Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery() { HasImdbId = true, User = user, IsPlayed = false, SourceTypes = new SourceType[] { SourceType.Library } });
 
-                Plugin.DebugLogger($"User {user.Name} has {libDict.Count} unplayed movies in library.");
+                if (debug)
+                    Plugin.Logger.Debug($"[BlurN] User {user.Name} has {libDict.Count} unplayed movies in library.");
 
                 for (int i = 0; i < items.List.Count; i++)
                 {
@@ -113,7 +116,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                             if (uid.Played)
                             {
                                 await libraryItem.MarkPlayed(user, uid.LastPlayedDate, true).ConfigureAwait(false);
-                                Plugin.DebugLogger($"Marked {blurNItem.Title} as watched in movie library.");
+                                if (debug)
+                                    Plugin.Logger.Debug($"[BlurN] Marked {blurNItem.Title} as watched in movie library.");
                             }
                         }
                     }

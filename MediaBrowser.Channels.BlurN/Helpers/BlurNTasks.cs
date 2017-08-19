@@ -23,8 +23,7 @@ namespace MediaBrowser.Channels.BlurN.Helpers
             if (fileSystem.FileExists(failedDataPath))
                 json.SerializeToFile((new FailedBlurNList()).List, failedDataPath);
 
-            if (config.EnableDebugLogging)
-                Plugin.Logger.Debug("[BlurN] Database reset actualized.");
+            Plugin.DebugLogger("Database reset actualized.");
 
             return;
         }

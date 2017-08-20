@@ -51,6 +51,8 @@ namespace MediaBrowser.Channels.BlurN.Configuration
             {
                 if (BlurNVersion.EndsWith("26"))
                     return "Pre3.2.27.0";
+                if (BlurNVersion.EndsWith("27"))
+                    return "3.2.27.0";
                 return "master";
             }
         }

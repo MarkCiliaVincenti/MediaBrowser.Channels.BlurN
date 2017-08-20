@@ -26,19 +26,16 @@ namespace MediaBrowser.Channels.BlurN.Helpers
             else
                 variablesDynamic = variablesStringList;
 
-            return new List<NotificationTypeInfo>()
+            yield return new NotificationTypeInfo()
             {
-                new NotificationTypeInfo()
-                {
-                    Category = "BlurN",
-                    DefaultDescription = "Year: {Year}, IMDb Rating: {IMDbRating} ({IMDbVotes} votes)",
-                    DefaultTitle = "[BlurN] New movie released: {Title}",
-                    Enabled = true,
-                    IsBasedOnUserEvent = false,
-                    Name = "New release notification",
-                    Type = NewRelease,
-                    Variables = variablesDynamic
-                }
+                Category = "BlurN",
+                DefaultDescription = "Year: {Year}, IMDb Rating: {IMDbRating} ({IMDbVotes} votes)",
+                DefaultTitle = "[BlurN] New movie released: {Title}",
+                Enabled = true,
+                IsBasedOnUserEvent = false,
+                Name = "New release notification",
+                Type = NewRelease,
+                Variables = variablesDynamic
             };
         }
     }

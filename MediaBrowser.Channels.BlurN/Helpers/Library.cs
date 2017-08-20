@@ -20,7 +20,7 @@ namespace MediaBrowser.Channels.BlurN.Helpers
             foreach (BaseItem libItem in library)
             {
                 string libIMDbId = libItem.GetProviderId(MetadataProviders.Imdb);
-                if (!libDict.ContainsKey(libIMDbId))
+                if (!string.IsNullOrEmpty(libIMDbId) && !libDict.ContainsKey(libIMDbId))
                     libDict.Add(libIMDbId, libItem);
             }
 

@@ -112,7 +112,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                         {
                             if (uid.Played)
                             {
-                                await libraryItem.MarkPlayed(user, uid.LastPlayedDate, true).ConfigureAwait(false);
+                                libraryItem.MarkPlayed(user, uid.LastPlayedDate, true);
                                 Plugin.DebugLogger($"Marked {blurNItem.Title} as watched in movie library.");
                             }
                         }

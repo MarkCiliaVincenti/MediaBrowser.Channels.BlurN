@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.Configuration;
+﻿using System;
+using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Model.Logging;
@@ -33,6 +34,12 @@ namespace MediaBrowser.Channels.BlurN
                     EmbeddedResourcePath = $"{GetType().Namespace}.Configuration.configPage.html"
                 }
             };
+        }
+
+        private Guid _id = new Guid("08D13692-D214-47DF-B9BD-2868870C5961");
+        public override Guid Id
+        {
+            get { return _id; }
         }
 
         public override string Name

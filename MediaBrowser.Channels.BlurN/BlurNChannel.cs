@@ -140,9 +140,9 @@ namespace MediaBrowser.Channels.BlurN
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "start", "viewchannel", cancellationToken);
+            await Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "start", "viewchannel", cancellationToken).ConfigureAwait(false);
             var returnMe = await GetItems(true, query, cancellationToken).ConfigureAwait(false);
-            Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "end", "viewchannel", cancellationToken);
+            await Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "end", "viewchannel", cancellationToken).ConfigureAwait(false);
             return returnMe;
         }
 

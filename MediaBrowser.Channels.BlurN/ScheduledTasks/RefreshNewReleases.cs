@@ -172,7 +172,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "start", "refresh", cancellationToken);
+            await Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "start", "refresh", cancellationToken).ConfigureAwait(false);
 
             var items = (await GetBluRayReleaseItems(cancellationToken).ConfigureAwait(false)).List;
 
@@ -309,7 +309,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             Plugin.DebugLogger($"JSON files saved to {dataPath}");
 
-            Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "end", "refresh", cancellationToken);
+            await Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "end", "refresh", cancellationToken).ConfigureAwait(false);
 
             progress.Report(100);
             return;

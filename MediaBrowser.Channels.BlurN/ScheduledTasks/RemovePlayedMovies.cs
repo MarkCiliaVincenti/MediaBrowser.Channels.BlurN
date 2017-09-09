@@ -78,7 +78,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "start", "removeplayed", cancellationToken);
+            await Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "start", "removeplayed", cancellationToken).ConfigureAwait(false);
 
             var config = Plugin.Instance.Configuration;
 
@@ -157,7 +157,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             else
                 Plugin.DebugLogger("Did not remove played movies due to configuration setting.");
 
-            Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "end", "removeplayed", cancellationToken);
+            await Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "end", "removeplayed", cancellationToken).ConfigureAwait(false);
 
             progress.Report(100);
             return;

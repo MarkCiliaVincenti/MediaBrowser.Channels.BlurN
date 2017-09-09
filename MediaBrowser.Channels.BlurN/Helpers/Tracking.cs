@@ -1,17 +1,16 @@
-﻿using MediaBrowser.Channels.BlurN.ScheduledTasks;
-using MediaBrowser.Common;
+﻿using MediaBrowser.Common;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MediaBrowser.Channels.BlurN.Helpers
 {
     class Tracking
     {
-        public static async void Track(IHttpClient _httpClient, IApplicationHost _appHost, IServerConfigurationManager _serverConfigurationManager, string sessionControl, string task, CancellationToken cancellationToken)
+        public static async Task Track(IHttpClient _httpClient, IApplicationHost _appHost, IServerConfigurationManager _serverConfigurationManager, string sessionControl, string task, CancellationToken cancellationToken)
         {
             var config = Plugin.Instance.Configuration;
             if (string.IsNullOrEmpty(config.InstallationID))
@@ -55,10 +54,7 @@ namespace MediaBrowser.Channels.BlurN.Helpers
 
                 options.SetPostData(values);
 
-                using (var response = await _httpClient.SendAsync(options, "POST").ConfigureAwait(false))
-                {
-
-                }
+                var response = await _httpClient.SendAsync(options, "POST").ConfigureAwait(false);
             }
             catch (Exception ex)
             {

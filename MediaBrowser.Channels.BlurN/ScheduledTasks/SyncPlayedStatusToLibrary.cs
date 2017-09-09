@@ -79,7 +79,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "start", "syncplayed", cancellationToken);
+            await Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "start", "syncplayed", cancellationToken).ConfigureAwait(false);
 
             var config = Plugin.Instance.Configuration;
 
@@ -122,7 +122,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 }
             }
 
-            Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "end", "syncplayed", cancellationToken);
+            await Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "end", "syncplayed", cancellationToken).ConfigureAwait(false);
 
             progress.Report(100);
             return;

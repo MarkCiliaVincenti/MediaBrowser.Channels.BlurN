@@ -1,90 +1,23 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <MinimumVisualStudioVersion>11.0</MinimumVisualStudioVersion>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E19AE60D-5A34-4F11-92B6-446A9743F182}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MediaBrowser.Channels.BlurN</RootNamespace>
-    <AssemblyName>MediaBrowser.Channels.BlurN</AssemblyName>
-    <DefaultLanguage>en-US</DefaultLanguage>
-    <FileAlignment>512</FileAlignment>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworks>netstandard1.3;</TargetFrameworks>
+    <AssemblyVersion>1.1.0.12</AssemblyVersion>
+    <FileVersion>1.1.0.12</FileVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Compile Include="..\SharedVersion.cs">
-      <Link>Properties\SharedVersion.cs</Link>
-    </Compile>
-    <Compile Include="BlurNChannel.cs" />
-    <Compile Include="Configuration\PluginConfiguration.cs" />
-    <Compile Include="Helpers\FeedParser.cs" />
-    <Compile Include="Helpers\Item.cs" />
-    <Compile Include="Helpers\BlurNNotificationType.cs" />
-    <Compile Include="Helpers\Library.cs" />
-    <Compile Include="Helpers\BlurNItem.cs" />
-    <Compile Include="Helpers\BlurNTasks.cs" />
-    <Compile Include="Helpers\TMDb.cs" />
-    <Compile Include="Helpers\Tracking.cs" />
-    <Compile Include="Plugin.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ScheduledTasks\SyncPlayedStatusToLibrary.cs" />
-    <Compile Include="ScheduledTasks\RemovePlayedMovies.cs" />
-    <Compile Include="ScheduledTasks\RefreshNewReleases.cs" />
+    <None Remove="Configuration\configPage.html" />
+    <None Remove="Images\thumb.png" />
   </ItemGroup>
+
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Images\thumb.png" />
   </ItemGroup>
+
   <ItemGroup>
-    <Content Include="latestversion.txt" />
+    <PackageReference Include="mediabrowser.server.core" Version="3.3.3-beta" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="MediaBrowser.Common, Version=3.2.27.3, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MediaBrowser.Common.3.0.735\lib\portable-net45+win8+wpa81\MediaBrowser.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="MediaBrowser.Controller, Version=3.2.27.3, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MediaBrowser.Server.Core.3.0.735\lib\portable-net45+win8+wpa81\MediaBrowser.Controller.dll</HintPath>
-    </Reference>
-    <Reference Include="MediaBrowser.Model, Version=3.2.27.3, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MediaBrowser.Common.3.0.735\lib\portable-net45+win8+wpa81\MediaBrowser.Model.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>xcopy "$(TargetPath)" "E:\emby.windowsBETA\plugins\" /y</PostBuildEvent>
-  </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

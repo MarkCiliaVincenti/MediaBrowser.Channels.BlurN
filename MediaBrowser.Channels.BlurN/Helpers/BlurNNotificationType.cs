@@ -16,15 +16,6 @@ namespace MediaBrowser.Channels.BlurN.Helpers
         public IEnumerable<NotificationTypeInfo> GetNotificationTypes()
         {
             string[] variablesStringArray = new string[] { "Title", "Year", "IMDbRating", "IMDbVotes", "IMDbURL" };
-            List<string> variablesStringList = new List<string>() { "Title", "Year", "IMDbRating", "IMDbVotes", "IMDbURL" };
-
-            dynamic variablesDynamic;
-            var version = typeof(NotificationTypeInfo).GetTypeInfo().Assembly.GetName().Version;
-            var v3_2_27_0 = new Version(3, 2, 27, 0);
-            if (version.CompareTo(v3_2_27_0) > 0)
-                variablesDynamic = variablesStringArray;
-            else
-                variablesDynamic = variablesStringList;
 
             yield return new NotificationTypeInfo()
             {
@@ -35,7 +26,7 @@ namespace MediaBrowser.Channels.BlurN.Helpers
                 IsBasedOnUserEvent = false,
                 Name = "New release notification",
                 Type = NewRelease,
-                Variables = variablesDynamic
+                Variables = variablesStringArray
             };
         }
     }

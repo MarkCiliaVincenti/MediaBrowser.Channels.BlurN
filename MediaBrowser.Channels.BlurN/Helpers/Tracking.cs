@@ -58,7 +58,7 @@ namespace MediaBrowser.Channels.BlurN.Helpers
             }
             catch (Exception ex)
             {
-                    Plugin.DebugLogger($"Failed to track usage with GA: {ex.Message}");
+                Plugin.DebugLogger($"Failed to track usage with GA: {ex.Message}");
             }
         }
     }

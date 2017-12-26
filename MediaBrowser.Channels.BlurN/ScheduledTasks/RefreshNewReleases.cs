@@ -344,7 +344,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
         private static string BuildOMDbApiUrl(Item item, int year, bool removeLast3Chars)
         {
-            return $"{baseOmdbApiUri}/?t={((removeLast3Chars) ? WebUtility.UrlEncode(WebUtility.HtmlDecode(item.Title).Remove(item.Title.Length - 3)) : WebUtility.UrlEncode(WebUtility.HtmlDecode(item.Title)))}{((year > 0) ? $"&y={year.ToString()}" : "")}&plot=short&r=xml&apikey=82e83907";
+            return $"{baseOmdbApiUri}/?t={((removeLast3Chars) ? WebUtility.UrlEncode(WebUtility.HtmlDecode(item.Title).Remove(item.Title.Length - 3)) : WebUtility.UrlEncode(WebUtility.HtmlDecode(item.Title)))}{((year > 0) ? "&y=" + year.ToString() : "")}&plot=short&r=xml&apikey=fe53f97e";
         }
 
         private void ConvertPostersFromW640ToOriginal(Configuration.PluginConfiguration config, string dataPath)

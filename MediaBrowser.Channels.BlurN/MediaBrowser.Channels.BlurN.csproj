@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;</TargetFrameworks>
-    <AssemblyVersion>2.0.0.1</AssemblyVersion>
-    <FileVersion>2.0.0.1</FileVersion>
+    <AssemblyVersion>2.0.0.3</AssemblyVersion>
+    <FileVersion>2.0.0.3</FileVersion>
     <Description />
   </PropertyGroup>
 
@@ -18,11 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="mediabrowser.server.core" Version="3.3.3-beta" />
+    <PackageReference Include="mediabrowser.server.core" Version="3.3.19" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy &quot;$(TargetPath)&quot; &quot;E:\emby.windowsBETA\plugins\&quot; /y" />
+    <Exec Command="xcopy &quot;$(TargetPath)&quot; &quot;E:\emby.windows\plugins\&quot; /y" />
   </Target>
 
 </Project>

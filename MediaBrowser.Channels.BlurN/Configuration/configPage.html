@@ -158,6 +158,27 @@
 
 
         <script type="text/javascript">
+            var getHTML = function (url, callback) {
+
+                // Feature detection
+                if (!window.XMLHttpRequest) return;
+
+                // Create new request
+                var xhr = new XMLHttpRequest();
+
+                // Setup callback
+                xhr.onload = function () {
+                    if (callback && typeof (callback) === 'function') {
+                        callback(this.responseText);
+                    }
+                }
+
+                // Get the HTML
+                xhr.open('GET', url);
+                xhr.responseType = 'text';
+                xhr.send();
+
+            };
             function showLastPublishedDate(page, date) {
                 var d = new Date(date);
                 function pad(n) { return n < 10 ? '0' + n : n }
@@ -184,7 +205,9 @@
                 var page = this;
                 ApiClient.getPluginConfiguration(BlurNConfigurationPage.pluginUniqueId).then(function (config) {
                     showLastPublishedDate(page, config.LastPublishDate);
-                    $('#BlurNTitle', page).html('BlurN');
+                    getHTML('https://raw.githubusercontent.com/MarkCiliaVincenti/MediaBrowser.Channels.BlurN/master/MediaBrowser.Channels.BlurN/latestversion.txt', function (response) {
+                        $('#BlurNTitle', page).html('BlurN ' + config.BlurNVersion + " (latest version " + response + ")");
+                    });
                     $('#txtAge', page).val(config.Age || "");
                     $('#txtMinimumIMDBRating', page).val(config.MinimumIMDBRating || "");
                     $('#txtMinimumIMDBVotes', page).val(config.MinimumIMDBVotes || "");

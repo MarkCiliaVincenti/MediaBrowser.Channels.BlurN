@@ -91,6 +91,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             //string result = "";
             try
             {
+                Plugin.DebugLogger($"Getting {url}");
                 using (var result = await _httpClient.Get(new HttpRequestOptions()
                 {
                     Url = url,
@@ -99,6 +100,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     EnableDefaultUserAgent = true
                 }).ConfigureAwait(false))
                 {
+                    Plugin.DebugLogger($"Got {url}");
                     XDocument doc = XDocument.Load(result);
                     XElement root = doc.Root;
                     if (root.Elements().First().Name.ToString() == "movie")
@@ -148,8 +150,9 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     return new BlurNItem();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Plugin.DebugLogger($"Caught error {ex.Message}");
                 return null;
             }
         }
@@ -230,7 +233,10 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 }
 
                 if (blurNItem == null)
+                {
+                    Plugin.DebugLogger($"Adding {item.Title} ({year}) to failed list");
                     failedList.List.Add(new FailedBlurNItem() { Title = item.Title, Year = year });
+                }
                 else if (!string.IsNullOrEmpty(blurNItem.ImdbId) && insertList.List.Any(x => x.ImdbId == blurNItem.ImdbId))
                     Plugin.DebugLogger($"{blurNItem.ImdbId} is a duplicate, skipped.");
                 else if (!string.IsNullOrEmpty(blurNItem.ImdbId) && !config.AddItemsAlreadyInLibrary && libDict.ContainsKey(blurNItem.ImdbId))

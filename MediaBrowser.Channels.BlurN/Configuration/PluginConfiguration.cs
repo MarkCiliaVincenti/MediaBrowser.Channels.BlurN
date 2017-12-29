@@ -1,12 +1,6 @@
-﻿using System;
+﻿using MediaBrowser.Model.Plugins;
+using System;
 using System.Reflection;
-using MediaBrowser.Model.Plugins;
-using System.Threading;
-using System.Threading.Tasks;
-using System.IO;
-using System.Net.Http;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace MediaBrowser.Channels.BlurN.Configuration
 {

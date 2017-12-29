@@ -1,11 +1,6 @@
 ﻿using MediaBrowser.Controller.Notifications;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using MediaBrowser.Model.Notifications;
-using System.Reflection;
+using System.Collections.Generic;
 
 namespace MediaBrowser.Channels.BlurN.Helpers
 {

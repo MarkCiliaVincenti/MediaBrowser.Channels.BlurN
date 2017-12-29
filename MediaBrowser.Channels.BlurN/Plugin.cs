@@ -1,12 +1,11 @@
-﻿using System;
+﻿using MediaBrowser.Channels.BlurN.Configuration;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
-using MediaBrowser.Model.Serialization;
-using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.Notifications;
-using MediaBrowser.Channels.BlurN.Configuration;
 using MediaBrowser.Controller.Notifications;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Plugins;
+using MediaBrowser.Model.Serialization;
+using System;
 using System.Collections.Generic;
 
 namespace MediaBrowser.Channels.BlurN

@@ -1,12 +1,12 @@
-﻿using System;
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Serialization;
+using MediaBrowser.Model.Tasks;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Model.Tasks;
-using MediaBrowser.Model.Serialization;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Model.IO;
-using System.IO;
 
 namespace MediaBrowser.Channels.BlurN.Helpers
 {

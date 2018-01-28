@@ -9,6 +9,7 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Drawing;
+using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Serialization;
@@ -343,7 +344,7 @@ namespace MediaBrowser.Channels.BlurN
                         cmi.Width = videoStream.Width;
                     }
                     Plugin.DebugLogger($"Linked movie {blurNItem.Title} to library. Path: {blurNItem.LibraryItem.Path}, Substituted Path: {cmi.Path}");
-                    cii.MediaSources = new List<ChannelMediaInfo>() { cmi };
+                    cii.MediaSources = new List<MediaSourceInfo>() { cmi.ToMediaSource() };
                 }
 
                 result.Items.Add(cii);

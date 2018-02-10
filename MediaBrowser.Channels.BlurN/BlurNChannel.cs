@@ -194,6 +194,13 @@ namespace MediaBrowser.Channels.BlurN
                         if (inChannel)
                             Plugin.DebugLogger($"Hiding movie '{blurNItem.Title}' from BlurN channel list as watched by user");
                     }
+                    else if (!config.AddItemsAlreadyInLibrary)
+                    {
+                        items.List.RemoveAt(i);
+                        i--;
+                        if (inChannel)
+                            Plugin.DebugLogger($"Hiding movie '{blurNItem.Title}' from BlurN channel list as availabile in library");
+                    }
                     else
                     {
                         blurNItem.LibraryItem = libraryItem;

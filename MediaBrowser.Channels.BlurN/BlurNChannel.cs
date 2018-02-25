@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace MediaBrowser.Channels.BlurN
 {
-    public class BlurNChannel : IChannel, IIndexableChannel, ISupportsLatestMedia, IHasCacheKey
+    public class BlurNChannel : IChannel, ISupportsLatestMedia, IHasCacheKey
     {
         private readonly IApplicationHost _appHost;
         private readonly IServerConfigurationManager _serverConfigurationManager;
@@ -307,7 +307,9 @@ namespace MediaBrowser.Channels.BlurN
                     ProductionYear = blurNItem.Released.Year,
                     RunTimeTicks = blurNItem.RuntimeTicks,
                     Type = ChannelItemType.Media,
-                    IsInfiniteStream = false
+                    HomePageUrl = "https://emby.media/community/index.php?/topic/43658-blurn-%E2%80%94-blu-ray-release-notifications/",
+                    DateModified = blurNItem.BluRayReleaseDate,
+                    IsLiveStream = false
                 };
 
                 cii.SetProviderId(MetadataProviders.Imdb, blurNItem.ImdbId);
@@ -392,27 +394,27 @@ namespace MediaBrowser.Channels.BlurN
             return DataVersion;
         }
 
-        public async Task<ChannelItemResult> GetAllMedia(InternalAllChannelMediaQuery query, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var channelItemResult = await GetItems(false, new InternalChannelItemQuery { UserId = query.UserId }, cancellationToken).ConfigureAwait(false);
+        //public async Task<ChannelItemResult> GetAllMedia(InternalAllChannelMediaQuery query, CancellationToken cancellationToken)
+        //{
+        //    cancellationToken.ThrowIfCancellationRequested();
+        //    var channelItemResult = await GetItems(false, new InternalChannelItemQuery { UserId = query.UserId }, cancellationToken).ConfigureAwait(false);
 
-            if (query.ContentTypes.Length > 0)
-            {
-                channelItemResult.Items = channelItemResult.Items.Where(i => query.ContentTypes.Contains(i.ContentType)).ToList();
-            }
-            if (query.ExtraTypes.Length > 0)
-            {
-                channelItemResult.Items = channelItemResult.Items.Where(i => query.ExtraTypes.Contains(i.ExtraType)).ToList();
-            }
-            if (query.TrailerTypes.Length > 0)
-            {
-                channelItemResult.Items = channelItemResult.Items.Where(i => i.TrailerTypes.Any(t => query.TrailerTypes.Contains(t))).ToList();
-            }
+        //    if (query.ContentTypes.Length > 0)
+        //    {
+        //        channelItemResult.Items = channelItemResult.Items.Where(i => query.ContentTypes.Contains(i.ContentType)).ToList();
+        //    }
+        //    if (query.ExtraTypes.Length > 0)
+        //    {
+        //        channelItemResult.Items = channelItemResult.Items.Where(i => query.ExtraTypes.Contains(i.ExtraType)).ToList();
+        //    }
+        //    if (query.TrailerTypes.Length > 0)
+        //    {
+        //        channelItemResult.Items = channelItemResult.Items.Where(i => i.TrailerTypes.Any(t => query.TrailerTypes.Contains(t))).ToList();
+        //    }
 
-            channelItemResult.TotalRecordCount = channelItemResult.Items.Count;
-            return channelItemResult;
-        }
+        //    channelItemResult.TotalRecordCount = channelItemResult.Items.Count;
+        //    return channelItemResult;
+        //}
 
         public async Task<IEnumerable<ChannelItemInfo>> GetLatestMedia(ChannelLatestMediaSearch request, CancellationToken cancellationToken)
         {

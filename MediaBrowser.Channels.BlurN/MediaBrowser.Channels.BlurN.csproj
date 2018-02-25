@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;</TargetFrameworks>
-    <AssemblyVersion>2.0.1.1</AssemblyVersion>
-    <FileVersion>2.0.1.1</FileVersion>
+    <AssemblyVersion>2.0.1.2</AssemblyVersion>
+    <FileVersion>2.0.1.2</FileVersion>
     <Description />
   </PropertyGroup>
 
@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="mediabrowser.server.core" Version="3.3.21-beta" />
+    <PackageReference Include="mediabrowser.server.core" Version="3.3.28" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

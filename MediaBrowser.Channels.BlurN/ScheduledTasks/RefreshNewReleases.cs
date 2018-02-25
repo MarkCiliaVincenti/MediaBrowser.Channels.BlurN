@@ -97,7 +97,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     Url = url,
                     CancellationToken = cancellationToken,
                     BufferContent = true,
-                    EnableDefaultUserAgent = true
+                    EnableDefaultUserAgent = true,
+                    TimeoutMs = 15000
                 }).ConfigureAwait(false))
                 {
                     Plugin.DebugLogger($"Got {url}");

@@ -284,10 +284,11 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             {
                 var existingData = _json.DeserializeFromFile<List<BlurNItem>>(dataPath);
 
-                if (config.ChannelRefreshCount < 4)
+                if (config.ChannelRefreshCount < 5)
                 {
-                    existingData = existingData.GroupBy(p => p.ImdbId).Select(g => g.First()).ToList();
-                    config.ChannelRefreshCount = 4;
+                    if (config.ChannelRefreshCount < 4)
+                        existingData = existingData.GroupBy(p => p.ImdbId).Select(g => g.First()).ToList();
+                    config.ChannelRefreshCount = 5;
                     Plugin.Instance.SaveConfiguration();
                 }
 

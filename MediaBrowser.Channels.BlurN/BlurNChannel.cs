@@ -389,7 +389,7 @@ namespace MediaBrowser.Channels.BlurN
 
         public string GetCacheKey(string userId)
         {
-            return $"{DataVersion}-{Plugin.Instance.Configuration.BlurNVersion}";
+            return $"{DataVersion}-{Plugin.Instance.Configuration.ChannelRefreshCount}";
         }
 
         public async Task<IEnumerable<ChannelItemInfo>> GetLatestMedia(ChannelLatestMediaSearch request, CancellationToken cancellationToken)

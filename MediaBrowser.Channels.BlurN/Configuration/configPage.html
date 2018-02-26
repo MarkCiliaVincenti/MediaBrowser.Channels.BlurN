@@ -269,6 +269,7 @@
                     config.Thriller = $('#chkThriller', form).checked();
                     config.War = $('#chkWar', form).checked();
                     config.Western = $('#chkWestern', form).checked();
+                    config.DataVersion = "0";
                     ApiClient.updatePluginConfiguration(BlurNConfigurationPage.pluginUniqueId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                 });
                 // Disable default form submission
@@ -280,6 +281,7 @@
                         Dashboard.showLoadingMsg();
                         ApiClient.getPluginConfiguration(BlurNConfigurationPage.pluginUniqueId).then(function (config) {
                             config.LastPublishDate = new Date('2017-01-01T00:00:00.0000000Z');
+                            config.DataVersion = "0";
 
                             ApiClient.updatePluginConfiguration(BlurNConfigurationPage.pluginUniqueId, config).then(function () {
                                 showLastPublishedDate(page, config.LastPublishDate);

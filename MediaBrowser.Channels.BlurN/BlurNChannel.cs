@@ -55,7 +55,7 @@ namespace MediaBrowser.Channels.BlurN
         {
             get
             {
-                return Plugin.Instance.Configuration.LastPublishDate.ToString("yyyyMMdd");
+                return Plugin.Instance.Configuration.DataVersion;
             }
         }
 
@@ -87,7 +87,7 @@ namespace MediaBrowser.Channels.BlurN
         {
             get
             {
-                return ChannelParentalRating.UsR;
+                return ChannelParentalRating.GeneralAudience;
             }
         }
 
@@ -106,7 +106,6 @@ namespace MediaBrowser.Channels.BlurN
                     ChannelMediaContentType.Movie
                 },
                 AutoRefreshLevels = 3,
-
                 MediaTypes = new List<ChannelMediaType>
                 {
                     ChannelMediaType.Video
@@ -187,7 +186,7 @@ namespace MediaBrowser.Channels.BlurN
                 bool foundInLibrary = libDict.TryGetValue(blurNItem.ImdbId, out libraryItem);
                 if (foundInLibrary)
                 {
-                    if (config.HidePlayedMovies && libraryItem.IsPlayed(user))
+                    if (config.HidePlayedMovies && user != null && libraryItem.IsPlayed(user))
                     {
                         items.List.RemoveAt(i);
                         i--;

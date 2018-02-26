@@ -10,6 +10,7 @@ namespace MediaBrowser.Channels.BlurN.Configuration
         public int MinimumIMDBVotes { get; set; }
         public int Age { get; set; }
         public DateTime LastPublishDate { get; set; }
+        public string DataVersion { get; set; }
         public Boolean AddItemsAlreadyInLibrary { get; set; }
         public Boolean HidePlayedMovies { get; set; }
         public Boolean EnableDebugLogging { get; set; }

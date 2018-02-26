@@ -98,7 +98,9 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     CancellationToken = cancellationToken,
                     BufferContent = true,
                     EnableDefaultUserAgent = true,
-                    TimeoutMs = 15000
+                    TimeoutMs = 15000,
+                    EnableHttpCompression = true,
+                    DecompressionMethod = CompressionMethod.Gzip
                 }).ConfigureAwait(false))
                 {
                     Plugin.DebugLogger($"Got {url}");
@@ -303,6 +305,11 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             insertList.List = insertList.List.OrderByDescending(i => i.BluRayReleaseDate).ThenByDescending(i => i.ImdbRating).ThenByDescending(i => i.ImdbVotes).ThenByDescending(i => i.Metascore).ThenBy(i => i.Title).ToList();
 
             config.LastPublishDate = newPublishDate;
+            if (config.DataVersion == "0")
+                config.DataVersion = Guid.NewGuid().ToString();
+            else
+                config.DataVersion = newPublishDate.ToString("yyyyMMdd");
+
             Plugin.Instance.SaveConfiguration();
 
             Plugin.DebugLogger($"Configuration saved. MediaBrowser.Channels.BlurN.Data.json path is {dataPath}");
@@ -382,7 +389,9 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     CancellationToken = cancellationToken,
                     BufferContent = false,
                     EnableDefaultUserAgent = true,
-                    AcceptHeader = "application/json,image/*"
+                    AcceptHeader = "application/json,image/*",
+                    EnableHttpCompression = true,
+                    DecompressionMethod = CompressionMethod.Gzip
                 }).ConfigureAwait(false))
                 {
                     var tmdb = _json.DeserializeFromStream<TmdbMovieFindResult>(tmdbContent);
@@ -422,7 +431,9 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 Url = bluRayReleaseUri,
                 CancellationToken = cancellationToken,
                 BufferContent = true,
-                EnableDefaultUserAgent = true
+                EnableDefaultUserAgent = true,
+                EnableHttpCompression = true,
+                DecompressionMethod = CompressionMethod.Gzip
             }).ConfigureAwait(false))
             {
                 XDocument doc = XDocument.Load(bluRayReleaseContent);

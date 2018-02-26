@@ -49,7 +49,9 @@ namespace MediaBrowser.Channels.BlurN.Helpers
                     LogErrors = false,
                     BufferContent = false,
                     LogErrorResponseBody = false,
-                    EnableDefaultUserAgent = true
+                    EnableDefaultUserAgent = true,                    
+                    EnableHttpCompression = true,
+                    DecompressionMethod = CompressionMethod.Gzip
                 };
 
                 options.SetPostData(values);

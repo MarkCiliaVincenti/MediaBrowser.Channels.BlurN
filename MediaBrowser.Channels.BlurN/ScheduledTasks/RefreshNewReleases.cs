@@ -397,7 +397,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             try
             {
                 TmdbMovieSearchResult tmdbMovie = null;
-                bool needEnglishLanguage = false;
+                bool needEnglishLanguagePoster = false;
+                bool needEnglishLanguageTitle = true;
                 using (var tmdbContent = await _httpClient.Get(new HttpRequestOptions()
                 {
                     Url = $"https://api.themoviedb.org/3/find/{blurNItem.ImdbId}?api_key=3e97b8d1c00a0f2fe72054febe695276&external_source=imdb_id" + ((Plugin.Instance.Configuration.UseInterfaceLanguage) ? $"&language={_serverConfigurationManager.Configuration.UICulture}&include_image_language=en,null" : ""),
@@ -414,18 +415,21 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     blurNItem.Poster = $"https://image.tmdb.org/t/p/original{tmdbMovie.poster_path}";
                     blurNItem.TmdbId = tmdbMovie.id;
 
-                    if (Plugin.Instance.Configuration.UseInterfaceLanguage || string.IsNullOrWhiteSpace(tmdbMovie.original_language) || tmdbMovie.original_language == "en" || _serverConfigurationManager.Configuration.UICulture.StartsWith("en") || _serverConfigurationManager.Configuration.UICulture.StartsWith(tmdbMovie.original_language))
+                    needEnglishLanguagePoster = !(!Plugin.Instance.Configuration.UseInterfaceLanguage || string.IsNullOrWhiteSpace(tmdbMovie.original_language) || tmdbMovie.original_language == "en" || _serverConfigurationManager.Configuration.UICulture.StartsWith("en") || _serverConfigurationManager.Configuration.UICulture.StartsWith(tmdbMovie.original_language));
+
+                    if (!needEnglishLanguagePoster || tmdbMovie.original_title != tmdbMovie.title)
                     {
                         if (!string.IsNullOrWhiteSpace(tmdbMovie.title))
+                        {
                             blurNItem.Title = tmdbMovie.title;
+                            needEnglishLanguageTitle = false;
+                        }
                         if (!string.IsNullOrWhiteSpace(tmdbMovie.overview))
                             blurNItem.Plot = tmdbMovie.overview;
                     }
-                    else
-                        needEnglishLanguage = true;
                 }
 
-                if (needEnglishLanguage)
+                if (needEnglishLanguagePoster)
                 {
                     // Get English poster instead
                     using (var tmdbContent = await _httpClient.Get(new HttpRequestOptions()
@@ -443,10 +447,13 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                         tmdbMovie = tmdb.movie_results.First();
                         blurNItem.Poster = $"https://image.tmdb.org/t/p/original{tmdbMovie.poster_path}";
 
-                        if (!string.IsNullOrWhiteSpace(tmdbMovie.title))
-                            blurNItem.Title = tmdbMovie.title;
-                        if (!string.IsNullOrWhiteSpace(tmdbMovie.overview))
-                            blurNItem.Plot = tmdbMovie.overview;
+                        if (needEnglishLanguageTitle)
+                        {
+                            if (!string.IsNullOrWhiteSpace(tmdbMovie.title))
+                                blurNItem.Title = tmdbMovie.title;
+                            if (!string.IsNullOrWhiteSpace(tmdbMovie.overview))
+                                blurNItem.Plot = tmdbMovie.overview;
+                        }
                     }
                 }
             }

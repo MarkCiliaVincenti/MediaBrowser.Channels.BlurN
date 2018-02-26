@@ -20,6 +20,11 @@ namespace MediaBrowser.Channels.BlurN.Helpers
         /// <value>The id.</value>
         public int id { get; set; }
         /// <summary>
+        /// Gets or sets the original_language.
+        /// </summary>
+        /// <value>The original_language.</value>
+        public string original_language { get; set; }
+        /// <summary>
         /// Gets or sets the original_title.
         /// </summary>
         /// <value>The original_title.</value>
@@ -29,6 +34,11 @@ namespace MediaBrowser.Channels.BlurN.Helpers
         /// </summary>
         /// <value>The original_name.</value>
         public string original_name { get; set; }
+        /// <summary>
+        /// Gets or sets the overview.
+        /// </summary>
+        /// <value>The overview.</value>
+        public string overview { get; set; }
         /// <summary>
         /// Gets or sets the release_date.
         /// </summary>

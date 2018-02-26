@@ -5,7 +5,6 @@
 </head>
 <body>
     <div data-role="page" class="page type-interior pluginConfigurationPage BlurNConfigurationPage" data-require="emby-button,emby-input,emby-checkbox">
-
         <div data-role="content">
             <div class="content-primary">
                 <h1 id="BlurNTitle">BlurN</h1>
@@ -32,6 +31,10 @@
                             The more popular the movie the more votes it will tend to get. (Default is 1000)
                         </div>
                     </div>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkUseInterfaceLanguage" />
+                        <span>Get movie titles and posters from Emby Server interface language (Default is checked)</span>
+                    </label>
                     <label class="checkboxContainer">
                         <input is="emby-checkbox" type="checkbox" id="chkAddItemsAlreadyInLibrary" />
                         <span>Add movies to BlurN even if they already exist in your Emby movie library (Default is checked)</span>
@@ -211,6 +214,7 @@
                     $('#txtAge', page).val(config.Age || "");
                     $('#txtMinimumIMDBRating', page).val(config.MinimumIMDBRating || "");
                     $('#txtMinimumIMDBVotes', page).val(config.MinimumIMDBVotes || "");
+                    $('#chkUseInterfaceLanguage', page).checked(config.UseInterfaceLanguage || false).checkboxradio("refresh");
                     $('#chkAddItemsAlreadyInLibrary', page).checked(config.AddItemsAlreadyInLibrary || false).checkboxradio("refresh");
                     $('#chkHidePlayedMovies', page).checked(config.HidePlayedMovies || false).checkboxradio("refresh");
                     $('#chkDebugLogging', page).checked(config.EnableDebugLogging || false).checkboxradio("refresh");
@@ -245,6 +249,7 @@
                     config.Age = $('#txtAge', form).val();
                     config.MinimumIMDBRating = $('#txtMinimumIMDBRating', form).val();
                     config.MinimumIMDBVotes = $('#txtMinimumIMDBVotes', form).val();
+                    config.UseInterfaceLanguage = $('#chkUseInterfaceLanguage', form).checked();
                     config.AddItemsAlreadyInLibrary = $('#chkAddItemsAlreadyInLibrary', form).checked();
                     config.HidePlayedMovies = $('#chkHidePlayedMovies', form).checked();
                     config.EnableDebugLogging = $('#chkDebugLogging', form).checked();

@@ -11,6 +11,7 @@ namespace MediaBrowser.Channels.BlurN.Configuration
         public int Age { get; set; }
         public DateTime LastPublishDate { get; set; }
         public string DataVersion { get; set; }
+        public Boolean UseInterfaceLanguage { get; set; }
         public Boolean AddItemsAlreadyInLibrary { get; set; }
         public Boolean HidePlayedMovies { get; set; }
         public Boolean EnableDebugLogging { get; set; }
@@ -46,6 +47,7 @@ namespace MediaBrowser.Channels.BlurN.Configuration
             MinimumIMDBVotes = 1000;
             Age = 730;
             LastPublishDate = DateTime.MinValue;
+            UseInterfaceLanguage = true;
             AddItemsAlreadyInLibrary = true;
             HidePlayedMovies = true;
             EnableDebugLogging = false;

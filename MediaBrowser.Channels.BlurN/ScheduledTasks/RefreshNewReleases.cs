@@ -292,11 +292,11 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             {
                 var existingData = _json.DeserializeFromFile<List<BlurNItem>>(dataPath);
 
-                if (config.ChannelRefreshCount < 5)
+                if (config.ChannelRefreshCount < 6)
                 {
                     if (config.ChannelRefreshCount < 4)
                         existingData = existingData.GroupBy(p => p.ImdbId).Select(g => g.First()).ToList();
-                    config.ChannelRefreshCount = 5;
+                    config.ChannelRefreshCount = 6;
                     Plugin.Instance.SaveConfiguration();
                 }
 
@@ -396,9 +396,10 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             try
             {
+                TmdbMovieSearchResult tmdbMovie = null;
                 using (var tmdbContent = await _httpClient.Get(new HttpRequestOptions()
                 {
-                    Url = $"https://api.themoviedb.org/3/find/{blurNItem.ImdbId}?api_key=3e97b8d1c00a0f2fe72054febe695276&external_source=imdb_id",
+                    Url = $"https://api.themoviedb.org/3/find/{blurNItem.ImdbId}?api_key=3e97b8d1c00a0f2fe72054febe695276&external_source=imdb_id" + ((Plugin.Instance.Configuration.UseInterfaceLanguage) ? $"&language={_serverConfigurationManager.Configuration.UICulture}&include_image_language=en,null" : ""),
                     CancellationToken = cancellationToken,
                     BufferContent = false,
                     EnableDefaultUserAgent = true,
@@ -408,9 +409,37 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 }).ConfigureAwait(false))
                 {
                     var tmdb = _json.DeserializeFromStream<TmdbMovieFindResult>(tmdbContent);
-                    TmdbMovieSearchResult tmdbMovie = tmdb.movie_results.First();
+                    tmdbMovie = tmdb.movie_results.First();
                     blurNItem.Poster = $"https://image.tmdb.org/t/p/original{tmdbMovie.poster_path}";
                     blurNItem.TmdbId = tmdbMovie.id;
+
+                    if (string.IsNullOrWhiteSpace(tmdbMovie.original_language) || tmdbMovie.original_language == "en" || _serverConfigurationManager.Configuration.UICulture.StartsWith(tmdbMovie.original_language))
+                    {
+                        if (!string.IsNullOrWhiteSpace(tmdbMovie.title))
+                            blurNItem.Title = tmdbMovie.title;
+                        if (!string.IsNullOrWhiteSpace(tmdbMovie.overview))
+                            blurNItem.Plot = tmdbMovie.overview;
+                    }
+                }
+
+                if (Plugin.Instance.Configuration.UseInterfaceLanguage && !string.IsNullOrWhiteSpace(tmdbMovie.original_language) && tmdbMovie.original_language != "en" && !_serverConfigurationManager.Configuration.UICulture.StartsWith(tmdbMovie.original_language))
+                {
+                    // Get English poster instead
+                    using (var tmdbContent = await _httpClient.Get(new HttpRequestOptions()
+                    {
+                        Url = $"https://api.themoviedb.org/3/find/{blurNItem.ImdbId}?api_key=3e97b8d1c00a0f2fe72054febe695276&external_source=imdb_id&language=en&include_image_language=null",
+                        CancellationToken = cancellationToken,
+                        BufferContent = false,
+                        EnableDefaultUserAgent = true,
+                        AcceptHeader = "application/json,image/*",
+                        EnableHttpCompression = true,
+                        DecompressionMethod = CompressionMethod.Gzip
+                    }).ConfigureAwait(false))
+                    {
+                        var tmdb = _json.DeserializeFromStream<TmdbMovieFindResult>(tmdbContent);
+                        tmdbMovie = tmdb.movie_results.First();
+                        blurNItem.Poster = $"https://image.tmdb.org/t/p/original{tmdbMovie.poster_path}";
+                    }
                 }
             }
             catch

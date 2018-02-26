@@ -94,8 +94,8 @@ namespace MediaBrowser.Channels.BlurN
         public InternalChannelFeatures GetChannelFeatures()
         {
             var sortfields = new List<ChannelItemSortField>();
-            sortfields.Add(ChannelItemSortField.Name);
             sortfields.Add(ChannelItemSortField.DateCreated);
+            sortfields.Add(ChannelItemSortField.Name);
             sortfields.Add(ChannelItemSortField.CommunityRating);
             sortfields.Add(ChannelItemSortField.PremiereDate);
             sortfields.Add(ChannelItemSortField.Runtime);
@@ -389,7 +389,7 @@ namespace MediaBrowser.Channels.BlurN
 
         public string GetCacheKey(string userId)
         {
-            return DataVersion;
+            return $"{DataVersion}-{Plugin.Instance.Configuration.BlurNVersion}";
         }
 
         public async Task<IEnumerable<ChannelItemInfo>> GetLatestMedia(ChannelLatestMediaSearch request, CancellationToken cancellationToken)

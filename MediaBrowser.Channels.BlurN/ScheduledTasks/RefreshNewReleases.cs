@@ -413,7 +413,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     blurNItem.Poster = $"https://image.tmdb.org/t/p/original{tmdbMovie.poster_path}";
                     blurNItem.TmdbId = tmdbMovie.id;
 
-                    if (string.IsNullOrWhiteSpace(tmdbMovie.original_language) || tmdbMovie.original_language == "en" || _serverConfigurationManager.Configuration.UICulture.StartsWith(tmdbMovie.original_language))
+                    if (string.IsNullOrWhiteSpace(tmdbMovie.original_language) || tmdbMovie.original_language == "en" || _serverConfigurationManager.Configuration.UICulture.StartsWith("en") || _serverConfigurationManager.Configuration.UICulture.StartsWith(tmdbMovie.original_language))
                     {
                         if (!string.IsNullOrWhiteSpace(tmdbMovie.title))
                             blurNItem.Title = tmdbMovie.title;
@@ -422,7 +422,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     }
                 }
 
-                if (Plugin.Instance.Configuration.UseInterfaceLanguage && !string.IsNullOrWhiteSpace(tmdbMovie.original_language) && tmdbMovie.original_language != "en" && !_serverConfigurationManager.Configuration.UICulture.StartsWith(tmdbMovie.original_language))
+                if (Plugin.Instance.Configuration.UseInterfaceLanguage && !string.IsNullOrWhiteSpace(tmdbMovie.original_language) && tmdbMovie.original_language != "en" && !_serverConfigurationManager.Configuration.UICulture.StartsWith("en") && !_serverConfigurationManager.Configuration.UICulture.StartsWith(tmdbMovie.original_language))
                 {
                     // Get English poster instead
                     using (var tmdbContent = await _httpClient.Get(new HttpRequestOptions()

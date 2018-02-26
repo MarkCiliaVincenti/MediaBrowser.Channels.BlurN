@@ -176,9 +176,15 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             await Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "start", "refresh", cancellationToken).ConfigureAwait(false);
 
+            progress.Report(2d);
+
             var items = (await GetBluRayReleaseItems(cancellationToken).ConfigureAwait(false)).List;
 
+            progress.Report(6d);
+
             var config = await BlurNTasks.CheckIfResetDatabaseRequested(cancellationToken, _json, _appPaths, _fileSystem).ConfigureAwait(false);
+
+            progress.Report(8d);
 
             string dataPath = Path.Combine(_appPaths.PluginConfigurationsPath, "MediaBrowser.Channels.BlurN.Data.json");
 
@@ -204,10 +210,12 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             var genreExcludeList = GetGenreExcludeList(config);
 
+            progress.Report(10d);
+
             for (int i = 0; i < finalItems.Count(); i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                progress.Report(100d * (Convert.ToDouble(i + 1) / Convert.ToDouble(finalItems.Count())));
+                progress.Report(10d + (86d * (Convert.ToDouble(i + 1) / Convert.ToDouble(finalItems.Count()))));
 
                 Item item = finalItems[i];
                 int year = 0;
@@ -315,10 +323,14 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             Plugin.DebugLogger($"Configuration saved. MediaBrowser.Channels.BlurN.Data.json path is {dataPath}");
 
+            progress.Report(97d);
+
             _json.SerializeToFile(insertList.List, dataPath);
             _json.SerializeToFile(failedList.List, failedDataPath);
 
             Plugin.DebugLogger($"JSON files saved to {dataPath}");
+
+            progress.Report(98d);
 
             await Tracking.Track(_httpClient, _appHost, _serverConfigurationManager, "end", "refresh", cancellationToken).ConfigureAwait(false);
 

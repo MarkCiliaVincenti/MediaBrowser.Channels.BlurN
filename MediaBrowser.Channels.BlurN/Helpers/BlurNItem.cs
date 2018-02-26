@@ -93,7 +93,7 @@ namespace MediaBrowser.Channels.BlurN.Helpers
         {
             get
             {
-                return $"http://www.imdb.com/title/{ImdbId}/";
+                return $"https://www.imdb.com/title/{ImdbId}/";
             }
         }
 

@@ -212,6 +212,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             progress.Report(10d);
 
+            bool itemAdded = false;
+
             for (int i = 0; i < finalItems.Count(); i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -285,6 +287,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     }, cancellationToken).ConfigureAwait(false);
 
                     Plugin.DebugLogger($"Adding {blurNItem.Title} to the BlurN channel.");
+
+                    itemAdded = true;
                 }
             }
 
@@ -314,10 +318,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             insertList.List = insertList.List.OrderByDescending(i => i.BluRayReleaseDate).ThenByDescending(i => i.ImdbRating).ThenByDescending(i => i.ImdbVotes).ThenByDescending(i => i.Metascore).ThenBy(i => i.Title).ToList();
 
             config.LastPublishDate = newPublishDate;
-            if (config.DataVersion == "0")
-                config.DataVersion = Guid.NewGuid().ToString();
-            else
-                config.DataVersion = newPublishDate.ToString("yyyyMMdd");
+            if (config.DataVersion == "0" || itemAdded)
+                config.DataVersion = DateTime.Now.ToString("yyyyMMddHHmmss");
 
             Plugin.Instance.SaveConfiguration();
 

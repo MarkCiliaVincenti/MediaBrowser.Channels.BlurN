@@ -201,8 +201,10 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
             var insertList = new BlurNItems();
             var failedList = new FailedBlurNList();
+            var existingData = new List<BlurNItem>();
 
-            var finalItems = items.Where(i => i.PublishDate > lastPublishDate).GroupBy(x => new { x.Title, x.PublishDate }).Select(g => g.First()).Reverse().ToList();
+            //var finalItems = items.Where(i => i.PublishDate > lastPublishDate).GroupBy(x => new { x.Title, x.PublishDate }).Select(g => g.First()).Reverse().ToList();
+            var finalItems = items.GroupBy(x => new { x.Title, x.PublishDate }).Select(g => g.First()).Reverse().ToList();
 
             string failedDataPath = AddPreviouslyFailedItemsToFinalItems(finalItems);
 
@@ -213,6 +215,19 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             progress.Report(10d);
 
             bool itemAdded = false;
+
+            if (_fileSystem.FileExists(dataPath))
+            {
+                existingData = _json.DeserializeFromFile<List<BlurNItem>>(dataPath);
+
+                if (config.ChannelRefreshCount < 6)
+                {
+                    if (config.ChannelRefreshCount < 4)
+                        existingData = existingData.GroupBy(p => p.ImdbId).Select(g => g.First()).ToList();
+                    config.ChannelRefreshCount = 6;
+                    Plugin.Instance.SaveConfiguration();
+                }
+            }
 
             for (int i = 0; i < finalItems.Count(); i++)
             {
@@ -250,7 +265,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     Plugin.DebugLogger($"Adding {item.Title} ({year}) to failed list");
                     failedList.List.Add(new FailedBlurNItem() { Title = item.Title, Year = year });
                 }
-                else if (!string.IsNullOrEmpty(blurNItem.ImdbId) && insertList.List.Any(x => x.ImdbId == blurNItem.ImdbId))
+                else if (!string.IsNullOrEmpty(blurNItem.ImdbId) && (insertList.List.Any(x => x.ImdbId == blurNItem.ImdbId) || existingData.Select(d => d.ImdbId).Contains(blurNItem.ImdbId)))
                     Plugin.DebugLogger($"{blurNItem.ImdbId} is a duplicate, skipped.");
                 else if (!string.IsNullOrEmpty(blurNItem.ImdbId) && !config.AddItemsAlreadyInLibrary && libDict.ContainsKey(blurNItem.ImdbId))
                     Plugin.DebugLogger($"{blurNItem.ImdbId} is already in the library, skipped.");
@@ -292,27 +307,14 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 }
             }
 
-            if (_fileSystem.FileExists(dataPath))
+            if (existingData != null)
             {
-                var existingData = _json.DeserializeFromFile<List<BlurNItem>>(dataPath);
+                //insertList.List = insertList.List.Where(x => !existingData.Select(d => d.ImdbId).Contains(x.ImdbId)).ToList();
 
-                if (config.ChannelRefreshCount < 6)
-                {
-                    if (config.ChannelRefreshCount < 4)
-                        existingData = existingData.GroupBy(p => p.ImdbId).Select(g => g.First()).ToList();
-                    config.ChannelRefreshCount = 6;
-                    Plugin.Instance.SaveConfiguration();
-                }
+                foreach (BlurNItem blurNItem in existingData.Where(o => !o.TmdbId.HasValue))
+                    await UpdateContentWithTmdbData(cancellationToken, blurNItem).ConfigureAwait(false);
 
-                if (existingData != null)
-                {
-                    insertList.List = insertList.List.Where(x => !existingData.Select(d => d.ImdbId).Contains(x.ImdbId)).ToList();
-
-                    foreach (BlurNItem blurNItem in existingData.Where(o => !o.TmdbId.HasValue))
-                        await UpdateContentWithTmdbData(cancellationToken, blurNItem).ConfigureAwait(false);
-
-                    insertList.List.AddRange(existingData);
-                }
+                insertList.List.AddRange(existingData);
             }
 
             insertList.List = insertList.List.OrderByDescending(i => i.BluRayReleaseDate).ThenByDescending(i => i.ImdbRating).ThenByDescending(i => i.ImdbVotes).ThenByDescending(i => i.Metascore).ThenBy(i => i.Title).ToList();

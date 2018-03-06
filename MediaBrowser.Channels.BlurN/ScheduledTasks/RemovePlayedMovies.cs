@@ -147,8 +147,10 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                             if (removedItems)
                             {
                                 Plugin.DebugLogger("Saving updated BlurN database");
-
                                 _json.SerializeToFile(existingData, dataPath);
+
+                                config.DataVersion = DateTime.Now.ToString("yyyyMMddHHmmss");
+                                Plugin.Instance.SaveConfiguration();
                             }
                         }
                     }

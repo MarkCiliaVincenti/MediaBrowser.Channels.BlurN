@@ -29,14 +29,16 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         private readonly IApplicationPaths _appPaths;
         private readonly IFileSystem _fileSystem;
         private readonly ILibraryManager _libraryManager;
+        private readonly IUserManager _userManager;
         private readonly IServerConfigurationManager _serverConfigurationManager;
         private readonly IHttpClient _httpClient;
 
         private const string bluRayReleaseUri = "http://www.blu-ray.com/rss/newreleasesfeed.xml";
         private const string baseOmdbApiUri = "https://www.omdbapi.com";
 
-        public RefreshNewReleases(IHttpClient httpClient, IApplicationHost appHost, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager, IServerConfigurationManager serverConfigurationManager)
+        public RefreshNewReleases(IUserManager userManager, IHttpClient httpClient, IApplicationHost appHost, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager, IServerConfigurationManager serverConfigurationManager)
         {
+            _userManager = userManager;
             _httpClient = httpClient;
             _appHost = appHost;
             _json = json;
@@ -269,6 +271,8 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     Plugin.DebugLogger($"{blurNItem.ImdbId} is a duplicate, skipped.");
                 else if (!string.IsNullOrEmpty(blurNItem.ImdbId) && !config.AddItemsAlreadyInLibrary && libDict.ContainsKey(blurNItem.ImdbId))
                     Plugin.DebugLogger($"{blurNItem.ImdbId} is already in the library, skipped.");
+                else if (!string.IsNullOrEmpty(blurNItem.ImdbId) && config.HidePlayedMovies && libDict.ContainsKey(blurNItem.ImdbId) && _userManager.Users.All(x => libDict[blurNItem.ImdbId].IsPlayed(x)))
+                    Plugin.DebugLogger($"{blurNItem.ImdbId} is played by all users, skipped.");
                 else if (blurNItem.Type != "movie")
                     Plugin.DebugLogger($"{blurNItem.Title} is not of type 'movie', skipped.");
                 else if (genreExcludeList.Contains(blurNItem.FirstGenre))

@@ -155,7 +155,7 @@ namespace MediaBrowser.Channels.BlurN
             if (inChannel)
                 Plugin.DebugLogger("Entered BlurN channel list");
 
-            User user = (string.IsNullOrWhiteSpace(query.UserId)) ? null :_userManager.GetUserById(query.UserId);
+            User user = query.UserId.Equals(Guid.Empty) ? null :_userManager.GetUserById(query.UserId);
 
             Dictionary<string, BaseItem> libDict = (user == null) ? new Dictionary<string, BaseItem>() : Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery() { HasImdbId = true, User = user, SourceTypes = new SourceType[] { SourceType.Library } });
 
@@ -398,7 +398,7 @@ namespace MediaBrowser.Channels.BlurN
             {
                 SortBy = ChannelItemSortField.DateCreated,
                 SortDescending = true,
-                UserId = request.UserId,
+                UserId = string.IsNullOrEmpty(request.UserId) ? Guid.Empty : new Guid(request.UserId),
                 StartIndex = 0,
                 Limit = 6
             }, cancellationToken).ConfigureAwait(false);

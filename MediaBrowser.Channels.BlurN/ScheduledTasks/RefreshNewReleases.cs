@@ -289,20 +289,15 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
                     insertList.List.Add(blurNItem);
 
-                    var variables = new Dictionary<string, string>();
-                    variables.Add("Title", blurNItem.Title);
-                    variables.Add("Year", blurNItem.Year.ToString());
-                    variables.Add("IMDbRating", blurNItem.ImdbRating.ToString());
-                    variables.Add("IMDbVotes", blurNItem.ImdbVotes.ToString("#,##0"));
-                    variables.Add("IMDbURL", blurNItem.ImdbUrl);
-
                     await Plugin.NotificationManager.SendNotification(new NotificationRequest()
                     {
-                        Variables = variables,
                         Date = DateTime.Now,
                         Level = NotificationLevel.Normal,
                         NotificationType = BlurNNotificationType.NewRelease,
-                        Url = blurNItem.ImdbUrl
+                        Url = blurNItem.ImdbUrl,
+                        Name = string.Format("[BlurN] New movie released: {0}", blurNItem.Title),
+                        Description = string.Format("Year: {0}, IMDb Rating: {1} ({2} votes)", blurNItem.Year, blurNItem.ImdbRating, blurNItem.ImdbVotes.ToString("#,##0"))
+
                     }, cancellationToken).ConfigureAwait(false);
 
                     Plugin.DebugLogger($"Adding {blurNItem.Title} to the BlurN channel.");

@@ -10,18 +10,13 @@ namespace MediaBrowser.Channels.BlurN.Helpers
 
         public IEnumerable<NotificationTypeInfo> GetNotificationTypes()
         {
-            string[] variablesStringArray = new string[] { "Title", "Year", "IMDbRating", "IMDbVotes", "IMDbURL" };
-
             yield return new NotificationTypeInfo()
             {
                 Category = "BlurN",
-                DefaultDescription = "Year: {Year}, IMDb Rating: {IMDbRating} ({IMDbVotes} votes)",
-                DefaultTitle = "[BlurN] New movie released: {Title}",
                 Enabled = true,
                 IsBasedOnUserEvent = false,
                 Name = "New release notification",
-                Type = NewRelease,
-                Variables = variablesStringArray
+                Type = NewRelease
             };
         }
     }

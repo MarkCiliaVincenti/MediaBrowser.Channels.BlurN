@@ -209,7 +209,7 @@
                 ApiClient.getPluginConfiguration(BlurNConfigurationPage.pluginUniqueId).then(function (config) {
                     showLastPublishedDate(page, config.LastPublishDate);
                     getHTML('https://raw.githubusercontent.com/MarkCiliaVincenti/MediaBrowser.Channels.BlurN/master/MediaBrowser.Channels.BlurN/latestversion.txt', function (response) {
-                        $('#BlurNTitle', page).html('BlurN ' + config.BlurNVersion + ' (latest version <a href="addplugin.html?name=BlurN&guid=08D13692-D214-47DF-B9BD-2868870C5961">' + response + '</a>)');
+                        $('#BlurNTitle', page).html('BlurN ' + config.BlurNVersion + ' (latest version <a href="index.html?start=wizard#!/addplugin.html?name=BlurN&guid=08D13692-D214-47DF-B9BD-2868870C5961">' + response + '</a>)');
                     });
                     $('#txtAge', page).val(config.Age || "");
                     $('#txtMinimumIMDBRating', page).val(config.MinimumIMDBRating || "");

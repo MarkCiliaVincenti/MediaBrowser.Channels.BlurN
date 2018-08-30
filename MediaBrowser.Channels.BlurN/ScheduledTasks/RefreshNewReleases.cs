@@ -197,7 +197,11 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             DateTime lastPublishDate = config.LastPublishDate;
             DateTime minAge = DateTime.Today.AddDays(0 - config.Age);
             DateTime newPublishDate = items[0].PublishDate;
-            Dictionary<string, BaseItem> libDict = (config.AddItemsAlreadyInLibrary) ? Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery() { HasImdbId = true, SourceTypes = new SourceType[] { SourceType.Library } }) : new Dictionary<string, BaseItem>();
+            Dictionary<string, BaseItem> libDict = (config.AddItemsAlreadyInLibrary) ? Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery()
+            {
+                HasAnyProviderId = new[] { "Imdb" },
+                SourceTypes = new SourceType[] { SourceType.Library }
+            }) : new Dictionary<string, BaseItem>();
 
             cancellationToken.ThrowIfCancellationRequested();
 

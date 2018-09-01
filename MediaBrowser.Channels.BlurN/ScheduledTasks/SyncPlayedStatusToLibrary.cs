@@ -97,7 +97,13 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             for (int u = 0; u < users.Count; u++)
             {
                 User user = users[u];
-                Dictionary<string, BaseItem> libDict = Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery() { HasImdbId = true, User = user, IsPlayed = false, SourceTypes = new SourceType[] { SourceType.Library } });
+                Dictionary<string, BaseItem> libDict = Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery()
+                {
+                    HasAnyProviderId = new[] { "Imdb" },
+                    User = user,
+                    IsPlayed = false,
+                    SourceTypes = new SourceType[] { SourceType.Library }
+                });
 
                 Plugin.DebugLogger($"User {user.Name} has {libDict.Count} unplayed movies in library.");
 
@@ -107,7 +113,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     BaseItem libraryItem;
                     if (libDict.TryGetValue(blurNItem.ImdbId, out libraryItem))
                     {
-                        UserItemData uid = _userDataManager.GetAllUserData(user.Id).FirstOrDefault(aud => aud.Key == $"{config.ChannelRefreshCount}-{blurNItem.ImdbId}");
+                        UserItemData uid = _userDataManager.GetAllUserData(user.InternalId).FirstOrDefault(aud => aud.Key == $"{config.ChannelRefreshCount}-{blurNItem.ImdbId}");
                         if (uid != default(UserItemData))
                         {
                             if (uid.Played)

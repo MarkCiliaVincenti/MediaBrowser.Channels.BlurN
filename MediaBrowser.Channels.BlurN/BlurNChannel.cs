@@ -155,9 +155,14 @@ namespace MediaBrowser.Channels.BlurN
             if (inChannel)
                 Plugin.DebugLogger("Entered BlurN channel list");
 
-            User user = query.UserId.Equals(Guid.Empty) ? null :_userManager.GetUserById(query.UserId);
+            User user = query.UserId.Equals(Guid.Empty) ? null : _userManager.GetUserById(query.UserId);
 
-            Dictionary<string, BaseItem> libDict = (user == null) ? new Dictionary<string, BaseItem>() : Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery() { HasImdbId = true, User = user, SourceTypes = new SourceType[] { SourceType.Library } });
+            Dictionary<string, BaseItem> libDict = (user == null) ? new Dictionary<string, BaseItem>() : Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery()
+            {
+                HasAnyProviderId = new[] { "Imdb" },
+                User = user,
+                SourceTypes = new SourceType[] { SourceType.Library }
+            });
 
             Plugin.DebugLogger($"Found {libDict.Count} items in movies library");
 
@@ -316,7 +321,7 @@ namespace MediaBrowser.Channels.BlurN
 
                 if (blurNItem.LibraryItem != null)
                 {
-                    var mediaStreams = _mediaSourceManager.GetMediaStreams(blurNItem.LibraryItem.Id).ToList();
+                    var mediaStreams = _mediaSourceManager.GetMediaStreams(blurNItem.LibraryItem.InternalId).ToList();
 
                     var audioStream = mediaStreams.FirstOrDefault(ms => ms.Type == MediaStreamType.Audio && ms.IsDefault);
                     var videoStream = mediaStreams.FirstOrDefault(ms => ms.Type == MediaStreamType.Video && ms.IsDefault);
@@ -398,7 +403,6 @@ namespace MediaBrowser.Channels.BlurN
             {
                 SortBy = ChannelItemSortField.DateCreated,
                 SortDescending = true,
-                UserId = string.IsNullOrEmpty(request.UserId) ? Guid.Empty : new Guid(request.UserId),
                 StartIndex = 0,
                 Limit = 6
             }, cancellationToken).ConfigureAwait(false);

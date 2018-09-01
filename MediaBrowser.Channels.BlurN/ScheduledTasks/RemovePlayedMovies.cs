@@ -89,7 +89,11 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
 
                 Plugin.DebugLogger($"User count is {_userManager.Users.Count()}");
 
-                library = _libraryManager.GetItemList(new InternalItemsQuery() { HasImdbId = true, SourceTypes = new SourceType[] { SourceType.Library } });
+                library = _libraryManager.GetItemList(new InternalItemsQuery()
+                {
+                    HasAnyProviderId = new[] { "Imdb" },
+                    SourceTypes = new SourceType[] { SourceType.Library }
+                });
 
                 Plugin.DebugLogger($"Library count is {library.Count()}");
 

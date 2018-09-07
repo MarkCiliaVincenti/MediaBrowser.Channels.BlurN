@@ -202,7 +202,6 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 HasAnyProviderId = new[] { "Imdb" },
                 SourceTypes = new SourceType[] { SourceType.Library }
             }) : new Dictionary<string, BaseItem>();
-
             cancellationToken.ThrowIfCancellationRequested();
 
             var insertList = new BlurNItems();

@@ -7,10 +7,12 @@ using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using MediaBrowser.Model.Drawing;
 
 namespace MediaBrowser.Channels.BlurN
 {
-    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
+    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages, IHasThumbImage
     {
         IApplicationPaths _appPaths;
 
@@ -39,6 +41,20 @@ namespace MediaBrowser.Channels.BlurN
         public override Guid Id
         {
             get { return _id; }
+        }
+
+        public Stream GetThumbImage()
+        {
+            var type = GetType();
+            return type.Assembly.GetManifestResourceStream(type.Namespace + ".thumb.png");
+        }
+
+        public ImageFormat ThumbImageFormat
+        {
+            get
+            {
+                return ImageFormat.Png;
+            }
         }
 
         public override string Name

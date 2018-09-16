@@ -5,6 +5,8 @@ using System.Xml.Linq;
 
 namespace MediaBrowser.Channels.BlurN.Helpers
 {
+    //Credits: http://www.anotherchris.net/csharp/simplified-csharp-atom-and-rss-feed-parser/
+
     /// <summary>
     /// A simple RSS, RDF and ATOM feed parser.
     /// </summary>

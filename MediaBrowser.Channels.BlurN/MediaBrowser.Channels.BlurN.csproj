@@ -5,6 +5,7 @@
     <AssemblyVersion>2.0.2.5</AssemblyVersion>
     <FileVersion>2.0.2.5</FileVersion>
     <Description />
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="mediabrowser.server.core" Version="3.6.0.36-beta" />
+    <PackageReference Include="mediabrowser.server.core" Version="3.6.0.43-beta" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

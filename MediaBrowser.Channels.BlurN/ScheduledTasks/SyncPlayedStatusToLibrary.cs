@@ -102,7 +102,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                     HasAnyProviderId = new[] { "Imdb" },
                     User = user,
                     IsPlayed = false,
-                    SourceTypes = new SourceType[] { SourceType.Library }
+                    //SourceTypes = new SourceType[] { SourceType.Library }
                 });
 
                 Plugin.DebugLogger($"User {user.Name} has {libDict.Count} unplayed movies in library.");

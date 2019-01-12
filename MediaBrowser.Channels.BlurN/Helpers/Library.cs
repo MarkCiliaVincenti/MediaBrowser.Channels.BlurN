@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Channels;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
 using System.Collections.Generic;
@@ -19,6 +20,8 @@ namespace MediaBrowser.Channels.BlurN.Helpers
 
             foreach (BaseItem libItem in library)
             {
+                if (libItem.GetTopParent() is Channel)
+                    continue;
                 string libIMDbId = libItem.GetProviderId(MetadataProviders.Imdb);
                 if (!string.IsNullOrEmpty(libIMDbId) && !libDict.ContainsKey(libIMDbId))
                     libDict.Add(libIMDbId, libItem);

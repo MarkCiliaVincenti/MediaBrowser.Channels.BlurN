@@ -161,7 +161,7 @@ namespace MediaBrowser.Channels.BlurN
             {
                 HasAnyProviderId = new[] { "Imdb" },
                 User = user,
-                SourceTypes = new SourceType[] { SourceType.Library }
+                //SourceTypes = new SourceType[] { SourceType.Library }
             });
 
             Plugin.DebugLogger($"Found {libDict.Count} items in movies library");

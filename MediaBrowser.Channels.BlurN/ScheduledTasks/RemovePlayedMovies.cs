@@ -2,6 +2,7 @@
 using MediaBrowser.Common;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -92,13 +93,15 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
                 library = _libraryManager.GetItemList(new InternalItemsQuery()
                 {
                     HasAnyProviderId = new[] { "Imdb" },
-                    SourceTypes = new SourceType[] { SourceType.Library }
+                    //SourceTypes = new SourceType[] { SourceType.Library }
                 });
 
                 Plugin.DebugLogger($"Library count is {library.Count()}");
 
                 foreach (BaseItem libItem in library)
                 {
+                    if (libItem.GetTopParent() is Channel)
+                        continue;
                     bool isPlayedByAll = true;
                     foreach (User user in _userManager.Users)
                     {

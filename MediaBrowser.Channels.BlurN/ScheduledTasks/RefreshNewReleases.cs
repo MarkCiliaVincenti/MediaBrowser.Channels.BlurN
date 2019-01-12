@@ -200,7 +200,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
             Dictionary<string, BaseItem> libDict = (config.AddItemsAlreadyInLibrary) ? Library.BuildLibraryDictionary(cancellationToken, _libraryManager, new InternalItemsQuery()
             {
                 HasAnyProviderId = new[] { "Imdb" },
-                SourceTypes = new SourceType[] { SourceType.Library }
+                //SourceTypes = new SourceType[] { SourceType.Library }
             }) : new Dictionary<string, BaseItem>();
             cancellationToken.ThrowIfCancellationRequested();
 

@@ -34,7 +34,7 @@ namespace MediaBrowser.Channels.BlurN.ScheduledTasks
         private readonly IHttpClient _httpClient;
 
         private const string bluRayReleaseUri = "http://www.blu-ray.com/rss/newreleasesfeed.xml";
-        private const string baseOmdbApiUri = "https://www.omdbapi.com";
+        private const string baseOmdbApiUri = "https://private.omdbapi.com";
 
         public RefreshNewReleases(IUserManager userManager, IHttpClient httpClient, IApplicationHost appHost, IJsonSerializer json, IApplicationPaths appPaths, IFileSystem fileSystem, ILibraryManager libraryManager, IServerConfigurationManager serverConfigurationManager)
         {

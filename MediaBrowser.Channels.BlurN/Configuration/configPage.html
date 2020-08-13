@@ -203,6 +203,18 @@
                     Dashboard.hideLoadingMsg();
                 });
             });
+
+            // the use of .checked() should be converted to plain javascript, but this is quick and dirty
+            $.fn.checked = function (checked) {
+                if (checked == null) {
+                    return this.checked;
+                }
+
+                this.checked = checked;
+                return this;
+            };
+
+
             $('.BlurNConfigurationPage').on('pageshow', function (event) {
                 Dashboard.showLoadingMsg();
                 var page = this;
@@ -214,31 +226,31 @@
                     $('#txtAge', page).val(config.Age || "");
                     $('#txtMinimumIMDBRating', page).val(config.MinimumIMDBRating || "");
                     $('#txtMinimumIMDBVotes', page).val(config.MinimumIMDBVotes || "");
-                    $('#chkUseInterfaceLanguage', page).checked(config.UseInterfaceLanguage || false).checkboxradio("refresh");
-                    $('#chkAddItemsAlreadyInLibrary', page).checked(config.AddItemsAlreadyInLibrary || false).checkboxradio("refresh");
-                    $('#chkHidePlayedMovies', page).checked(config.HidePlayedMovies || false).checkboxradio("refresh");
-                    $('#chkDebugLogging', page).checked(config.EnableDebugLogging || false).checkboxradio("refresh");
-                    $('#chkAction', page).checked(config.Action || false).checkboxradio("refresh");
-                    $('#chkAdventure', page).checked(config.Adventure || false).checkboxradio("refresh");
-                    $('#chkAnimation', page).checked(config.Animation || false).checkboxradio("refresh");
-                    $('#chkBiography', page).checked(config.Biography || false).checkboxradio("refresh");
-                    $('#chkComedy', page).checked(config.Comedy || false).checkboxradio("refresh");
-                    $('#chkCrime', page).checked(config.Crime || false).checkboxradio("refresh");
-                    $('#chkDrama', page).checked(config.Drama || false).checkboxradio("refresh");
-                    $('#chkFamily', page).checked(config.Family || false).checkboxradio("refresh");
-                    $('#chkFantasy', page).checked(config.Fantasy || false).checkboxradio("refresh");
-                    $('#chkFilmNoir', page).checked(config.FilmNoir || false).checkboxradio("refresh");
-                    $('#chkHistory', page).checked(config.History || false).checkboxradio("refresh");
-                    $('#chkHorror', page).checked(config.Horror || false).checkboxradio("refresh");
-                    $('#chkMusic', page).checked(config.Music || false).checkboxradio("refresh");
-                    $('#chkMusical', page).checked(config.Musical || false).checkboxradio("refresh");
-                    $('#chkMystery', page).checked(config.Mystery || false).checkboxradio("refresh");
-                    $('#chkRomance', page).checked(config.Romance || false).checkboxradio("refresh");
-                    $('#chkSciFi', page).checked(config.SciFi || false).checkboxradio("refresh");
-                    $('#chkSport', page).checked(config.Sport || false).checkboxradio("refresh");
-                    $('#chkThriller', page).checked(config.Thriller || false).checkboxradio("refresh");
-                    $('#chkWar', page).checked(config.War || false).checkboxradio("refresh");
-                    $('#chkWestern', page).checked(config.Western || false).checkboxradio("refresh");
+                    $('#chkUseInterfaceLanguage', page).checked(config.UseInterfaceLanguage || false);
+                    $('#chkAddItemsAlreadyInLibrary', page).checked(config.AddItemsAlreadyInLibrary || false);
+                    $('#chkHidePlayedMovies', page).checked(config.HidePlayedMovies || false);
+                    $('#chkDebugLogging', page).checked(config.EnableDebugLogging || false);
+                    $('#chkAction', page).checked(config.Action || false);
+                    $('#chkAdventure', page).checked(config.Adventure || false);
+                    $('#chkAnimation', page).checked(config.Animation || false);
+                    $('#chkBiography', page).checked(config.Biography || false);
+                    $('#chkComedy', page).checked(config.Comedy || false);
+                    $('#chkCrime', page).checked(config.Crime || false);
+                    $('#chkDrama', page).checked(config.Drama || false);
+                    $('#chkFamily', page).checked(config.Family || false);
+                    $('#chkFantasy', page).checked(config.Fantasy || false);
+                    $('#chkFilmNoir', page).checked(config.FilmNoir || false);
+                    $('#chkHistory', page).checked(config.History || false);
+                    $('#chkHorror', page).checked(config.Horror || false);
+                    $('#chkMusic', page).checked(config.Music || false);
+                    $('#chkMusical', page).checked(config.Musical || false);
+                    $('#chkMystery', page).checked(config.Mystery || false);
+                    $('#chkRomance', page).checked(config.Romance || false);
+                    $('#chkSciFi', page).checked(config.SciFi || false);
+                    $('#chkSport', page).checked(config.Sport || false);
+                    $('#chkThriller', page).checked(config.Thriller || false);
+                    $('#chkWar', page).checked(config.War || false);
+                    $('#chkWestern', page).checked(config.Western || false);
                     Dashboard.hideLoadingMsg();
                 });
             });
